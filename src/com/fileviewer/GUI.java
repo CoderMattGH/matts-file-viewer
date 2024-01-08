@@ -425,7 +425,7 @@ public class GUI extends JFrame {
         byte[] bytes = getByteArray(data, observer);
 
         ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
-        InputStreamReader reader = new InputStreamReader(bis);
+        InputStreamReader reader = new InputStreamReader(bis, StandardCharsets.UTF_16);
 
         try {
             int count = 0;
