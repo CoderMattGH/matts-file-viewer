@@ -20,7 +20,7 @@ public class GUI extends JFrame {
         this.setTitle("File Viewer v0.1");
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
 
-        this.setSize(800, 800);
+        this.setSize(1000, 800);
 
         Container container = this.getContentPane();
         container.setLayout(new BorderLayout());
@@ -83,6 +83,17 @@ public class GUI extends JFrame {
                 thread.start();
             });
 
+        JButton UTF16Btn = new JButton("UTF-16 VALUE");
+        UTF16Btn.addActionListener(e -> {
+                Thread thread = new Thread(() -> {
+                    FileProgObserver observer = new FileProgObserver();
+                    showProgressBar(observer);
+
+                    viewDataAsUTF16(lastFileLoadedData, observer);
+                });
+                thread.start();
+        });
+
         JButton button2 = new JButton("LOAD FILE");
         button2.addActionListener(e -> loadFile());
 
@@ -91,6 +102,7 @@ public class GUI extends JFrame {
         btnContainer.add(hexBtn);
         btnContainer.add(UTF8Btn);
         btnContainer.add(UTF8ByteBtn);
+        btnContainer.add(UTF16Btn);
         btnContainer.add(button2);
 
         textArea = new JTextArea();
@@ -148,7 +160,7 @@ public class GUI extends JFrame {
                     progressBar.setPercentage(observer.getPercentage());
 
                     try {
-                        Thread.sleep(10);
+                        Thread.sleep(100);
                     } catch (Exception e) {}
                 }
 
@@ -170,6 +182,7 @@ public class GUI extends JFrame {
         }
 
         resetTextOutput();
+        textArea.setVisible(false);
 
         StringBuilder str = new StringBuilder();
 
@@ -180,10 +193,13 @@ public class GUI extends JFrame {
 
             str.append(readByte).append(" ");
 
+
+
             count++;
         }
 
         setTextOutput(str.toString(), observer);
+        textArea.setVisible(true);
 
         observer.setIsFinished(true);
     }
@@ -300,6 +316,51 @@ public class GUI extends JFrame {
         observer.setIsFinished(true);
     }
 
+    private void viewDataAsUTF16(int[] data, FileProgObserver observer) {
+        if (data == null) {
+            System.out.println("Data is null!");
+
+            observer.setIsFinished(true);
+            return;
+        }
+
+        resetTextOutput();
+        observer.setPercentage(0);
+
+        byte[] bytes = getByteArray(data, observer);
+
+        ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
+        InputStreamReader reader = new InputStreamReader(bis, StandardCharsets.UTF_16);
+
+        try {
+            StringBuilder str = new StringBuilder();
+            double percentage;
+            int count = 0;
+            int byteRead;
+            while ((byteRead = reader.read()) != -1) {
+                percentage = ((double)count / data.length) * 100;
+                observer.setPercentage(percentage);
+
+                str.append(Character.toString(byteRead));
+
+                count++;
+            }
+
+            setTextOutput(str.toString(), observer);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                bis.close();
+                reader.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        observer.setIsFinished(true);
+    }
+
     private void viewDataAsHex(int[] data, FileProgObserver observer) {
         if (data == null) {
             System.out.println("Data is null!");
@@ -350,7 +411,12 @@ public class GUI extends JFrame {
         textArea.setText(text);
     }
 
+    /**
+     * Slow method.  Only use as last resort.
+     */
     private void setTextOutput(String text, FileProgObserver observer) {
+        System.gc();
+
         System.out.println("Setting text output...");
 
         textArea.setVisible(false);
@@ -361,17 +427,15 @@ public class GUI extends JFrame {
         double percentage;
 
         int chunkSize;
-        // 0.5 MB or 500000 bytes
         if (text.length() < 50000) {
-            chunkSize = 200;
+            chunkSize = 100;
         } else {
-            chunkSize = 200;
+            chunkSize = 100;
         }
 
         System.out.println("ChunkSize: " + chunkSize);
 
-        for (int i = 0; i < text.length(); i = i + chunkSize) {
-            // Write in character chunks.
+        for (int i = 0; i < text.length(); i++) {
             if (i % chunkSize == 0) {
                 percentage = ((double) i / text.length()) * 100;
                 observer.setPercentage(percentage);
@@ -384,6 +448,13 @@ public class GUI extends JFrame {
 
                 String test = text.substring(i, endIndex);
                 appendTextOutput(test);
+            }
+
+            if (i % (chunkSize * 10) == 0) {
+                try {
+                    System.out.println("Sleeping...");
+                    Thread.sleep(5);
+                } catch (Exception e) {}
             }
         }
 
