@@ -68,6 +68,12 @@ public class DataViewer {
                     gui.appendTextOutput(str.toString());
             } catch(IOException e) {
                 e.printStackTrace();
+            } finally {
+                try {
+                    bis.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         } else {
             int count = 0;

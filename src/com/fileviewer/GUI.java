@@ -3,6 +3,8 @@ package com.fileviewer;
 import com.fileviewer.dataprocessing.DataViewer;
 
 import javax.swing.*;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.StyledDocument;
 import java.awt.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -14,9 +16,7 @@ public class GUI extends JFrame {
 
     private int[] lastFileLoadedData;
 
-    private final JTextArea textArea;
-
-    private static final int APPEND_CHUNK_SIZE = 1000;
+    private JTextArea textArea;
 
     public GUI(FileLoader fileLoader, DataViewer dataViewer) {
         System.out.println("Constructing GUI");
@@ -35,7 +35,7 @@ public class GUI extends JFrame {
         container.setLayout(new BorderLayout());
 
         Container btnContainer = new Container();
-        btnContainer.setLayout(new GridLayout(2, 4));
+        btnContainer.setLayout(new GridLayout(2, 5));
 
         JButton byteBtn = new JButton("BYTE VALUE");
         byteBtn.addActionListener(e -> {
@@ -121,6 +121,12 @@ public class GUI extends JFrame {
                 thread.start();
             });
 
+        JButton runGCBtn = new JButton("RUN GC");
+        runGCBtn.addActionListener(e -> {
+                System.out.println("Running Garbage Collection.");
+                System.gc();
+            });
+
         JButton button2 = new JButton("LOAD FILE");
         button2.addActionListener(e -> loadFile());
 
@@ -131,6 +137,8 @@ public class GUI extends JFrame {
         btnContainer.add(UTF8ByteBtn);
         btnContainer.add(UTF16Btn);
         btnContainer.add(UTF16ByteBtn);
+
+        btnContainer.add(runGCBtn);
         btnContainer.add(button2);
 
         textArea = new JTextArea();
@@ -155,10 +163,11 @@ public class GUI extends JFrame {
 
         // If file exists
         if (returnVal == JFileChooser.APPROVE_OPTION) {
-            final FileProgObserver fileProgObserver = new FileProgObserver();
-
             Thread t = new Thread(() -> {
                     System.out.println("Loading file...");
+
+                    FileProgObserver fileProgObserver = new FileProgObserver();
+                    showProgressBar(fileProgObserver);
 
                     File file = fileChooser.getSelectedFile();
 
@@ -171,8 +180,6 @@ public class GUI extends JFrame {
                 }
             );
             t.start();
-
-            showProgressBar(fileProgObserver);
         }
     }
 
@@ -189,7 +196,7 @@ public class GUI extends JFrame {
                     progressBar.setPercentage(observer.getPercentage());
 
                     try {
-                        Thread.sleep(100);
+                        Thread.sleep(200);
                     } catch (Exception e) {}
                 }
 
@@ -206,57 +213,9 @@ public class GUI extends JFrame {
         textArea.setText(text);
     }
 
-    /**
-     * Slow method.  Only use as last resort.
-     */
-    public void setTextOutput(String text, FileProgObserver observer) {
-        System.out.println("Setting text output...");
-
-        textArea.setVisible(false);
-
-        resetTextOutput();
-
-        observer.setPercentage(0);
-        double percentage;
-
-        int chunkSize;
-        if (text.length() < 50000) {
-            chunkSize = 100;
-        } else {
-            chunkSize = 100;
-        }
-
-        System.out.println("ChunkSize: " + chunkSize);
-
-        for (int i = 0; i < text.length(); i++) {
-            if (i % chunkSize == 0) {
-                percentage = ((double) i / text.length()) * 100;
-                observer.setPercentage(percentage);
-
-                int endIndex = i + chunkSize;
-
-                if (endIndex > text.length()) {
-                    endIndex = text.length();
-                }
-
-                String test = text.substring(i, endIndex);
-                appendTextOutput(test);
-            }
-
-            if (i % (chunkSize * 10) == 0) {
-                try {
-                    System.out.println("Sleeping...");
-                    Thread.sleep(5);
-                } catch (Exception e) {}
-            }
-        }
-
-        System.out.println("Finished setting text output...");
-        textArea.setVisible(true);
-    }
-
     public void resetTextOutput() {
-        textArea.setText("");
+        textArea.setText(null);
+        textArea.revalidate();
     }
 
     public void appendTextOutput(final String text) {
