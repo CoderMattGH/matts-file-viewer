@@ -11,7 +11,7 @@ public class MainApp {
     }
 
     public void runApp() {
-        System.out.println("Running Fuck About 3");
+        System.out.println("Running FileViewer v0.1");
 
         GUI gui = new GUI(new FileLoader());
 
