@@ -1,12 +1,16 @@
 package com.fileviewer;
 
+import com.fileviewer.dataprocessing.DataViewer;
+
 import javax.swing.*;
 import java.awt.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import static com.fileviewer.dataprocessing.DataViewer.DataType;
 
 public class GUI extends JFrame {
     private final FileLoader fileLoader;
+    private final DataViewer dataViewer;
 
     private int[] lastFileLoadedData;
 
@@ -14,10 +18,13 @@ public class GUI extends JFrame {
 
     private static final int APPEND_CHUNK_SIZE = 1000;
 
-    public GUI(FileLoader fileLoader) {
+    public GUI(FileLoader fileLoader, DataViewer dataViewer) {
         System.out.println("Constructing GUI");
 
         this.fileLoader = fileLoader;
+
+        this.dataViewer = dataViewer;
+        dataViewer.setGui(this);
 
         this.setTitle("File Viewer v0.1");
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -36,7 +43,8 @@ public class GUI extends JFrame {
                     FileProgObserver observer = new FileProgObserver();
                     showProgressBar(observer);
 
-                    viewDataAsBytes(lastFileLoadedData, observer);
+                    dataViewer.displayData(lastFileLoadedData, observer, DataType.Bytes);
+                    observer.setIsFinished(true);
                 });
                 thread.start();
             });
@@ -47,7 +55,8 @@ public class GUI extends JFrame {
                     FileProgObserver observer = new FileProgObserver();
                     showProgressBar(observer);
 
-                    viewDataAsText(lastFileLoadedData, observer);
+                    dataViewer.displayData(lastFileLoadedData, observer, DataType.Characters);
+                    observer.setIsFinished(true);
                 });
                 thread.start();
             });
@@ -58,7 +67,8 @@ public class GUI extends JFrame {
                     FileProgObserver observer = new FileProgObserver();
                     showProgressBar(observer);
 
-                    viewDataAsHex(lastFileLoadedData, observer);
+                    dataViewer.displayData(lastFileLoadedData, observer, DataType.Hex);
+                    observer.setIsFinished(true);
                 });
                 thread.start();
             });
@@ -69,7 +79,8 @@ public class GUI extends JFrame {
                     FileProgObserver observer = new FileProgObserver();
                     showProgressBar(observer);
 
-                    viewDataAsUTF8(lastFileLoadedData, observer);
+                    dataViewer.displayData(lastFileLoadedData, observer, DataType.UTF8Characters);
+                    observer.setIsFinished(true);
                 });
                 thread.start();
             });
@@ -80,7 +91,8 @@ public class GUI extends JFrame {
                     FileProgObserver observer = new FileProgObserver();
                     showProgressBar(observer);
 
-                    viewDataAsUTF8ByteValue(lastFileLoadedData, observer);
+                    dataViewer.displayData(lastFileLoadedData, observer, DataType.UTF8Bytes);
+                    observer.setIsFinished(true);
                 });
                 thread.start();
             });
@@ -91,7 +103,8 @@ public class GUI extends JFrame {
                     FileProgObserver observer = new FileProgObserver();
                     showProgressBar(observer);
 
-                    viewDataAsUTF16(lastFileLoadedData, observer);
+                    dataViewer.displayData(lastFileLoadedData, observer, DataType.UTF16Characters);
+                    observer.setIsFinished(true);
                 });
                 thread.start();
             });
@@ -102,7 +115,8 @@ public class GUI extends JFrame {
                     FileProgObserver observer = new FileProgObserver();
                     showProgressBar(observer);
 
-                    viewDataAsUTF16ByteValue(lastFileLoadedData, observer);
+                    dataViewer.displayData(lastFileLoadedData, observer, DataType.UTF16Bytes);
+                    observer.setIsFinished(true);
                 });
                 thread.start();
             });
@@ -152,7 +166,8 @@ public class GUI extends JFrame {
 
                     fileProgObserver.setPercentage(0);
 
-                    viewDataAsText(lastFileLoadedData, fileProgObserver);
+                    dataViewer.displayData(lastFileLoadedData, fileProgObserver, DataType.Characters);
+                    fileProgObserver.setIsFinished(true);
                 }
             );
             t.start();
@@ -187,346 +202,14 @@ public class GUI extends JFrame {
         thread.start();
     }
 
-    private void viewDataAsBytes(int[] data, FileProgObserver observer) {
-        if (data == null) {
-            System.out.println("Data is null!");
-            observer.setIsFinished(true);
-
-            return;
-        }
-
-        resetTextOutput();
-        textArea.setVisible(false);
-
-        StringBuilder str = new StringBuilder();
-
-        int count = 0;
-        for (int readByte : data) {
-            str.append(readByte).append(" ");
-
-            // Append in 1000 char chunks
-            if (count % APPEND_CHUNK_SIZE == 0) {
-                double percentage = ((double)count / data.length) * 100;
-                observer.setPercentage(percentage);
-
-                appendTextOutput(str.toString());
-
-                // Reset the string.
-                str.setLength(0);
-            }
-
-            count++;
-        }
-
-        // Finish writing remaining text.
-        if (!str.isEmpty())
-            appendTextOutput(str.toString());
-
-        textArea.setVisible(true);
-        observer.setIsFinished(true);
-    }
-
-    private void viewDataAsText(int[] data, FileProgObserver observer) {
-        if (data == null) {
-            System.out.println("Data is null!");
-
-            observer.setIsFinished(true);
-            return;
-        }
-
-        resetTextOutput();
-        textArea.setVisible(false);
-
-        StringBuilder str = new StringBuilder();
-        int dataSize = data.length;
-        int count = 0;
-        for (Integer readByte : data) {
-            str.append(Character.toString(readByte));
-
-            if (count % APPEND_CHUNK_SIZE == 0) {
-                double percentage = ((double)count / dataSize) * 100;
-                observer.setPercentage(percentage);
-
-                appendTextOutput(str.toString());
-
-                str.setLength(0);
-            }
-
-            count++;
-        }
-
-        if (!str.isEmpty())
-            appendTextOutput(str.toString());
-
-        textArea.setVisible(true);
-        observer.setIsFinished(true);
-    }
-
-    private void viewDataAsUTF8(int[] data, FileProgObserver observer) {
-        if (data == null) {
-            System.out.println("Data is null!");
-
-            observer.setIsFinished(true);
-            return;
-        }
-
-        resetTextOutput();
-        textArea.setVisible(false);
-
-        byte[] bytes = getByteArray(data, observer);
-
-        ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
-        InputStreamReader reader = new InputStreamReader(bis, StandardCharsets.UTF_8);
-
-        observer.setPercentage(0);
-
-        try {
-            StringBuilder str = new StringBuilder();
-            int readByte;
-            double percentage;
-            int count = 0;
-            while ((readByte = reader.read()) != -1) {
-                str.append(Character.toString(readByte));
-
-                if (count % APPEND_CHUNK_SIZE == 0) {
-                    percentage = ((double)count / data.length) * 100;
-                    observer.setPercentage(percentage);
-
-                    appendTextOutput(str.toString());
-
-                    str.setLength(0);
-                }
-
-                count++;
-            }
-
-            if(!str.isEmpty())
-                appendTextOutput(str.toString());
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                bis.close();
-                reader.close();
-            } catch (Exception e1) {
-                e1.printStackTrace();
-            }
-        }
-
-        textArea.setVisible(true);
-        observer.setIsFinished(true);
-    }
-
-    private void viewDataAsUTF8ByteValue(int[] data, FileProgObserver observer) {
-        resetTextOutput();
-        textArea.setVisible(false);
-
-        byte[] byteArray = getByteArray(data, observer);
-
-        ByteArrayInputStream stream = new ByteArrayInputStream(byteArray);
-        InputStreamReader inputStreamReader = new InputStreamReader(stream, StandardCharsets.UTF_8);
-
-        StringBuilder str = new StringBuilder();
-        double percentage;
-        try {
-            int byteRead;
-            int count = 0;
-            while((byteRead = inputStreamReader.read()) != -1) {
-                str.append(byteRead).append(" ");
-
-                if (count % APPEND_CHUNK_SIZE == 0) {
-                    percentage = ((double)count / data.length) * 100;
-                    observer.setPercentage(percentage);
-
-                    appendTextOutput(str.toString());
-
-                    str.setLength(0);
-                }
-
-                count++;
-            }
-
-            if (!str.isEmpty())
-                appendTextOutput(str.toString());
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                stream.close();
-                inputStreamReader.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        textArea.setVisible(true);
-        observer.setIsFinished(true);
-    }
-
-    private void viewDataAsUTF16(int[] data, FileProgObserver observer) {
-        if (data == null) {
-            System.out.println("Data is null!");
-
-            observer.setIsFinished(true);
-            return;
-        }
-
-        resetTextOutput();
-        textArea.setVisible(false);
-        observer.setPercentage(0);
-
-        byte[] bytes = getByteArray(data, observer);
-
-        ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
-        InputStreamReader reader = new InputStreamReader(bis, StandardCharsets.UTF_16);
-
-        try {
-            StringBuilder str = new StringBuilder();
-            double percentage;
-            int count = 0;
-            int byteRead;
-            while ((byteRead = reader.read()) != -1) {
-                str.append(Character.toString(byteRead));
-
-                if (count % APPEND_CHUNK_SIZE == 0) {
-                    percentage = ((double)count / data.length) * 100;
-                    observer.setPercentage(percentage);
-
-                    appendTextOutput(str.toString());
-
-                    str.setLength(0);
-                }
-
-                count++;
-            }
-
-            if (!str.isEmpty())
-                appendTextOutput(str.toString());
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                bis.close();
-                reader.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        textArea.setVisible(true);
-        observer.setIsFinished(true);
-    }
-
-    private void viewDataAsUTF16ByteValue(int[] data, FileProgObserver observer) {
-        textArea.setVisible(false);
-        resetTextOutput();
-        observer.setPercentage(0);
-
-        byte[] bytes = getByteArray(data, observer);
-
-        ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
-        InputStreamReader reader = new InputStreamReader(bis, StandardCharsets.UTF_16);
-
-        try {
-            int count = 0;
-            double percentage;
-            StringBuilder str = new StringBuilder();
-            int readByte;
-            while ((readByte = reader.read()) != -1) {
-                str.append(readByte).append(" ");
-
-                if (count % APPEND_CHUNK_SIZE == 0) {
-                    percentage = ((double)count / data.length) * 100;
-                    observer.setPercentage(percentage);
-
-                    appendTextOutput(str.toString());
-
-                    str.setLength(0);
-                }
-
-                count++;
-            }
-
-            if (!str.isEmpty())
-                appendTextOutput(str.toString());
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                reader.close();
-                bis.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        textArea.setVisible(true);
-        observer.setIsFinished(true);
-    }
-
-    private void viewDataAsHex(int[] data, FileProgObserver observer) {
-        if (data == null) {
-            System.out.println("Data is null!");
-
-            observer.setIsFinished(true);
-            return;
-        }
-
-        resetTextOutput();
-        textArea.setVisible(false);
-
-        StringBuilder str = new StringBuilder();
-        int dataSize = data.length;
-        int count = 0;
-        for (Integer readByte : data) {
-            str.append(String.format("%02x ", readByte));
-
-            if (count % APPEND_CHUNK_SIZE == 0) {
-                double percentage = ((double)count / dataSize) * 100;
-                observer.setPercentage(percentage);
-
-                appendTextOutput(str.toString());
-
-                str.setLength(0);
-            }
-
-            count++;
-        }
-
-        if (!str.isEmpty())
-            appendTextOutput(str.toString());
-
-        textArea.setVisible(true);
-        observer.setIsFinished(true);
-    }
-
-    /**
-     * Simply converts a List of Integers into a byte array using primitive conversion.
-     */
-    private byte[] getByteArray(int[] data, FileProgObserver observer) {
-        byte[] bytes = new byte[data.length];
-
-        observer.setPercentage(0);
-        double percentage;
-
-        for (int i = 0; i < data.length; i++) {
-            percentage = ((double)i / data.length) * 100;
-            observer.setPercentage(percentage);
-
-            bytes[i] = (byte)data[i];
-        }
-
-        return bytes;
-    }
-
-    private void setTextOutput(String text) {
+    public void setTextOutput(String text) {
         textArea.setText(text);
     }
 
     /**
      * Slow method.  Only use as last resort.
      */
-    private void setTextOutput(String text, FileProgObserver observer) {
+    public void setTextOutput(String text, FileProgObserver observer) {
         System.out.println("Setting text output...");
 
         textArea.setVisible(false);
@@ -572,16 +255,11 @@ public class GUI extends JFrame {
         textArea.setVisible(true);
     }
 
-    private void resetTextOutput() {
+    public void resetTextOutput() {
         textArea.setText("");
     }
 
-    private void appendTextOutput(final String text) {
+    public void appendTextOutput(final String text) {
         textArea.append(text);
-
-        try {
-            Thread.sleep(10);
-        } catch (Exception e) {
-        }
     }
 }

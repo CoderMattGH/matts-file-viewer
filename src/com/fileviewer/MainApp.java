@@ -1,5 +1,7 @@
 package com.fileviewer;
 
+import com.fileviewer.dataprocessing.DataViewer;
+
 public class MainApp {
     public MainApp() {
         System.out.println("Constructing Main App");
@@ -13,7 +15,7 @@ public class MainApp {
     public void runApp() {
         System.out.println("Running FileViewer v0.1");
 
-        GUI gui = new GUI(new FileLoader());
+        GUI gui = new GUI(new FileLoader(), new DataViewer());
 
         // WebScraperGUI scraper = new WebScraperGUI();
     }
