@@ -19,7 +19,7 @@ public class DataViewer {
         UTF16Characters,
     }
 
-    private static final int APPEND_CHUNK_SIZE = 500;
+    private static final int APPEND_CHUNK_SIZE = 400;
 
     private GUI gui;
 
@@ -60,11 +60,12 @@ public class DataViewer {
             int dataByte;
             int count = 0;
             try {
-                reader.skip((long)startByteIndex);
+                long skipped = reader.skip((long)startByteIndex);
 
                 while ((dataByte = reader.read()) != -1) {
-                    if (count > endByteIndex)
+                    if (count > endByteIndex - startByteIndex) {
                         break;
+                    }
 
                     // Is task set to be cancelled?
                     if (observer.isCancelled()) {
