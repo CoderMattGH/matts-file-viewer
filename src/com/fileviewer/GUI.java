@@ -25,6 +25,9 @@ public class GUI extends JFrame {
     private JScrollPane scrollableTextArea;
     private Container container;
 
+    private JLabel pageInfoLabel;
+    private JLabel fileSizeLabel;
+
     public GUI(FileLoader fileLoader, DataViewer dataViewer) {
         System.out.println("Constructing GUI");
 
@@ -40,6 +43,9 @@ public class GUI extends JFrame {
 
         container = this.getContentPane();
         container.setLayout(new BorderLayout());
+
+        Container controlsContainer = new Container();
+        controlsContainer.setLayout(new GridLayout(3, 1));
 
         Container btnContainer = new Container();
         btnContainer.setLayout(new GridLayout(2, 5));
@@ -126,6 +132,8 @@ public class GUI extends JFrame {
 
                 startByteIndex = startByteIndex + MAX_BYTES_PER_PAGE;
 
+                setPageLabel(getCurrentPage());
+
                 Thread thread = new Thread(() -> {
                         displayData(currentType);
                     });
@@ -143,9 +151,25 @@ public class GUI extends JFrame {
                 else
                     startByteIndex = result;
 
+                setPageLabel(getCurrentPage());
+
                 Thread thread = new Thread(() -> {
                         displayData(currentType);
                     });
+                thread.start();
+            });
+
+        JButton firstPageBtn = new JButton("FIRST PAGE");
+        firstPageBtn.addActionListener(e -> {
+                System.out.println("Setting first page");
+
+                startByteIndex = 0;
+
+                setPageLabel(getCurrentPage());
+
+                Thread thread = new Thread(() -> {
+                        displayData(currentType);
+                        });
                 thread.start();
             });
 
@@ -160,9 +184,30 @@ public class GUI extends JFrame {
         btnContainer.add(UTF16Btn);
         btnContainer.add(UTF16ByteBtn);
 
-        btnContainer.add(prevPageBtn);
-        btnContainer.add(nxtPageBtn);
         btnContainer.add(button2);
+
+        Container pageControlsContainer = new Container();
+        pageControlsContainer.setLayout(new GridLayout(1, 3));
+
+        pageControlsContainer.add(firstPageBtn);
+        pageControlsContainer.add(prevPageBtn);
+        pageControlsContainer.add(nxtPageBtn);
+
+        pageInfoLabel = new JLabel();
+        setPageLabel(getCurrentPage());
+
+        fileSizeLabel = new JLabel();
+        setFileSizeLabel(0);
+
+        Container infoControlsContainer = new Container();
+        infoControlsContainer.setLayout(new GridLayout(1, 2));
+
+        infoControlsContainer.add(pageInfoLabel);
+        infoControlsContainer.add(fileSizeLabel);
+
+        controlsContainer.add(btnContainer);
+        controlsContainer.add(pageControlsContainer);
+        controlsContainer.add(infoControlsContainer);
 
         textArea = new JTextArea();
         textArea.setWrapStyleWord(false);
@@ -172,7 +217,7 @@ public class GUI extends JFrame {
         scrollableTextArea = new JScrollPane(textArea);
         scrollableTextArea.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 
-        container.add(btnContainer, BorderLayout.SOUTH);
+        container.add(controlsContainer, BorderLayout.SOUTH);
         container.add(scrollableTextArea, BorderLayout.CENTER);
 
         this.setVisible(true);
@@ -198,6 +243,9 @@ public class GUI extends JFrame {
                     fileProgObserver.setPercentage(0);
 
                     startByteIndex = 0;
+
+                    setPageLabel(getCurrentPage());
+                    setFileSizeLabel(lastFileLoadedData.length);
 
                     dataViewer.displayData(lastFileLoadedData, fileProgObserver, currentType,
                             startByteIndex, startByteIndex + MAX_BYTES_PER_PAGE);
@@ -260,5 +308,20 @@ public class GUI extends JFrame {
 
     public void appendTextOutput(final String text) {
         textArea.append(text);
+    }
+
+    private int getCurrentPage() {
+        if (startByteIndex == 0)
+            return 1;
+        else
+            return (startByteIndex / MAX_BYTES_PER_PAGE) + 1;
+    }
+
+    private void setPageLabel(int pageNumber) {
+        pageInfoLabel.setText("Page number: " + pageNumber);
+    }
+
+    private void setFileSizeLabel(int fileSize) {
+        fileSizeLabel.setText("File size: " + fileSize + " bytes");
     }
 }
