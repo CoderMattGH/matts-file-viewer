@@ -12,7 +12,7 @@ import static com.fileviewer.dataprocessing.DataViewer.DataType;
 public class GUI extends JFrame {
     private static final int MAX_BYTES_PER_PAGE = 10000;
 
-    private int startByteIndex = 0;      // Current starting point for reading bytes.
+    private int startByteIndex = 0;      // Current start index for reading bytes.
     private DataType currentType = DataType.Characters;
 
     private final FileLoader fileLoader;
@@ -51,155 +51,37 @@ public class GUI extends JFrame {
         btnContainer.setLayout(new GridLayout(2, 5));
 
         JButton byteBtn = new JButton("BYTE VALUES");
-        byteBtn.addActionListener(e -> {
-                Thread thread = new Thread(() -> {
-                    startByteIndex = 0;
-                    setPageLabel(getCurrentPage());
-
-                    currentType = DataType.Bytes;
-                    displayData(currentType);
-                });
-                thread.start();
-            });
+        byteBtn.addActionListener(e -> changeViewType(DataType.Bytes));
 
         JButton charBtn = new JButton("CHAR VALUES");
-        charBtn.addActionListener(e -> {
-                Thread thread = new Thread(() -> {
-                    startByteIndex = 0;
-                    setPageLabel(getCurrentPage());
-
-                    currentType = DataType.Characters;
-                    displayData(currentType);
-                });
-                thread.start();
-            });
+        charBtn.addActionListener(e -> changeViewType(DataType.Characters));
 
         JButton hexBtn = new JButton("HEX VALUES");
-        hexBtn.addActionListener(e -> {
-                Thread thread = new Thread(() -> {
-                    startByteIndex = 0;
-                    setPageLabel(getCurrentPage());
-
-                    currentType = DataType.Hex;
-                    displayData(currentType);
-                });
-                thread.start();
-            });
+        hexBtn.addActionListener(e -> changeViewType(DataType.Hex));
 
         JButton UTF8Btn = new JButton("UTF-8 VALUES");
-        UTF8Btn.addActionListener(e -> {
-                Thread thread = new Thread(() -> {
-                    startByteIndex = 0;
-                    setPageLabel(getCurrentPage());
-
-                    currentType = DataType.UTF8Characters;
-                    displayData(currentType);
-                });
-                thread.start();
-            });
+        UTF8Btn.addActionListener(e -> changeViewType(DataType.UTF8Characters));
 
         JButton UTF8ByteBtn = new JButton("UTF-8 CODES");
-        UTF8ByteBtn.addActionListener(e -> {
-                Thread thread = new Thread(() -> {
-                    startByteIndex = 0;
-                    setPageLabel(getCurrentPage());
-
-                    currentType = DataType.UTF8Bytes;
-                    displayData(currentType);
-                });
-                thread.start();
-            });
+        UTF8ByteBtn.addActionListener(e -> changeViewType(DataType.UTF8Bytes));
 
         JButton UTF16Btn = new JButton("UTF-16 VALUES");
-        UTF16Btn.addActionListener(e -> {
-                Thread thread = new Thread(() -> {
-                    startByteIndex = 0;
-                    setPageLabel(getCurrentPage());
-
-                    currentType = DataType.UTF16Characters;
-                    displayData(currentType);
-                });
-                thread.start();
-            });
+        UTF16Btn.addActionListener(e -> changeViewType(DataType.UTF16Characters));
 
         JButton UTF16ByteBtn = new JButton("UTF-16 CODES");
-        UTF16ByteBtn.addActionListener(e -> {
-                Thread thread = new Thread(() -> {
-                    startByteIndex = 0;
-                    setPageLabel(getCurrentPage());
-
-                    currentType = DataType.UTF16Bytes;
-                    displayData(currentType);
-                });
-                thread.start();
-            });
-
-        JButton runGCBtn = new JButton("RUN GC");
-        runGCBtn.addActionListener(e -> {
-                System.out.println("Running Garbage Collection.");
-                System.gc();
-            });
+        UTF16ByteBtn.addActionListener(e -> changeViewType(DataType.UTF16Bytes));
 
         JButton nxtPageBtn = new JButton("NEXT PAGE");
-        nxtPageBtn.addActionListener(e -> {
-                System.out.println("Fetching next page.");
-
-                if (lastFileLoadedData == null)
-                    return;
-
-                int tempStartIndex = startByteIndex + MAX_BYTES_PER_PAGE;
-
-                if (tempStartIndex >= lastFileLoadedData.length) {
-                    displayMessage("No more data.");
-
-                    return;
-                }
-
-                startByteIndex = tempStartIndex;
-
-                setPageLabel(getCurrentPage());
-
-                Thread thread = new Thread(() -> {
-                        displayData(currentType);
-                    });
-                thread.start();
-            });
+        nxtPageBtn.addActionListener(e -> showNextPage());
 
         JButton prevPageBtn = new JButton("PREV. PAGE");
-        prevPageBtn.addActionListener(e -> {
-                System.out.println("Fetching prev page.");
-
-                int result = startByteIndex - MAX_BYTES_PER_PAGE;
-
-                if (result < 0)
-                    startByteIndex = 0;
-                else
-                    startByteIndex = result;
-
-                setPageLabel(getCurrentPage());
-
-                Thread thread = new Thread(() -> {
-                        displayData(currentType);
-                    });
-                thread.start();
-            });
+        prevPageBtn.addActionListener(e -> showPrevPage());
 
         JButton firstPageBtn = new JButton("FIRST PAGE");
-        firstPageBtn.addActionListener(e -> {
-                System.out.println("Setting first page");
+        firstPageBtn.addActionListener(e -> showFirstPage());
 
-                startByteIndex = 0;
-
-                setPageLabel(getCurrentPage());
-
-                Thread thread = new Thread(() -> {
-                        displayData(currentType);
-                        });
-                thread.start();
-            });
-
-        JButton button2 = new JButton("LOAD FILE");
-        button2.addActionListener(e -> loadFile());
+        JButton loadBtn = new JButton("LOAD FILE");
+        loadBtn.addActionListener(e -> loadFile());
 
         btnContainer.add(byteBtn);
         btnContainer.add(charBtn);
@@ -209,7 +91,7 @@ public class GUI extends JFrame {
         btnContainer.add(UTF16Btn);
         btnContainer.add(UTF16ByteBtn);
 
-        btnContainer.add(button2);
+        btnContainer.add(loadBtn);
 
         Container pageControlsContainer = new Container();
         pageControlsContainer.setLayout(new GridLayout(1, 3));
@@ -381,5 +263,71 @@ public class GUI extends JFrame {
     private void displayMessage(String message) {
         JOptionPane.showMessageDialog(this, message, "Information",
                 JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private void changeViewType(DataType type) {
+        Thread thread = new Thread(() -> {
+                startByteIndex = 0;
+                setPageLabel(getCurrentPage());
+
+                currentType = type;
+                displayData(currentType);
+            });
+        thread.start();
+    }
+
+    private void showNextPage() {
+        System.out.println("Fetching next page.");
+
+        if (lastFileLoadedData == null)
+            return;
+
+        int tempStartIndex = startByteIndex + MAX_BYTES_PER_PAGE;
+
+        if (tempStartIndex >= lastFileLoadedData.length) {
+            displayMessage("No more data.");
+
+            return;
+        }
+
+        startByteIndex = tempStartIndex;
+
+        setPageLabel(getCurrentPage());
+
+        Thread thread = new Thread(() -> {
+            displayData(currentType);
+        });
+        thread.start();
+    }
+
+    private void showPrevPage() {
+        System.out.println("Fetching prev page.");
+
+        int result = startByteIndex - MAX_BYTES_PER_PAGE;
+
+        if (result < 0)
+            startByteIndex = 0;
+        else
+            startByteIndex = result;
+
+        setPageLabel(getCurrentPage());
+
+        Thread thread = new Thread(() -> {
+            displayData(currentType);
+        });
+        thread.start();
+    }
+
+    private void showFirstPage() {
+        System.out.println("Setting first page");
+
+        startByteIndex = 0;
+
+        setPageLabel(getCurrentPage());
+
+        Thread thread = new Thread(() -> {
+            displayData(currentType);
+        });
+        thread.start();
     }
 }
