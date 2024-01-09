@@ -31,6 +31,7 @@ public class DataViewer {
         this.gui = gui;
     }
 
+    // Start Index inclusive, End index is exclusive.
     public void displayData(int[] data, FileProgObserver observer, Enum<DataType> type,
             int startByteIndex, int endByteIndex) {
         if (data == null) {
@@ -49,7 +50,7 @@ public class DataViewer {
 
         if (type == DataType.UTF8Bytes || type == DataType.UTF8Characters
                 || type == DataType.UTF16Bytes || type == DataType.UTF16Characters) {
-            byte[] bytes = getByteArray(data, observer, startByteIndex, endByteIndex);
+            byte[] bytes = getByteArray(data, observer, startByteIndex, endByteIndex - 1);
 
             ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
             InputStreamReader reader;
@@ -61,19 +62,13 @@ public class DataViewer {
 
             int dataByte;
             try {
-                long skipped = reader.skip((long)startByteIndex);
-
                 while ((dataByte = reader.read()) != -1) {
-                    if (count > endByteIndex - startByteIndex) {
-                        break;
-                    }
-
                     // Is task set to be cancelled?
                     if (observer.isCancelled()) {
                         return;
                     }
 
-                    processChunk(str, type, dataByte, count, observer, endByteIndex - startByteIndex);
+                    processChunk(str, type, dataByte, count, observer, bytes.length);
                     count++;
                 }
 
@@ -119,17 +114,21 @@ public class DataViewer {
         observer.setPercentage(100);
     }
 
+    // Here endIndex is inclusive.
     private byte[] getByteArray(int[] data, FileProgObserver observer, int startIndex,
             int endIndex) {
-        int size = endIndex - startIndex;
+        if (endIndex > data.length)
+            endIndex = data.length - 1;
+
+        int size = endIndex - startIndex + 1;
 
         byte[] bytes = new byte[size];
 
         observer.setPercentage(0);
         double percentage;
 
-        for (int i = 0; i <= size; i++) {
-            percentage = ((double)i / data.length) * 100;
+        for (int i = 0; i < size; i++) {
+            percentage = ((double)i / size) * 100;
             observer.setPercentage(percentage);
 
             bytes[i] = (byte)data[i + startIndex];
