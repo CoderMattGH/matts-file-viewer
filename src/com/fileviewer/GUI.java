@@ -163,7 +163,7 @@ public class GUI extends JFrame {
                 thread.start();
             });
 
-        JButton prevPageBtn = new JButton("PREV PAGE");
+        JButton prevPageBtn = new JButton("PREV. PAGE");
         prevPageBtn.addActionListener(e -> {
                 System.out.println("Fetching prev page.");
 
