@@ -1,7 +1,7 @@
 package com.fileviewer.dataprocessing;
 
-import com.fileviewer.FileProgObserver;
-import com.fileviewer.GUI;
+import com.fileviewer.observer.FileProgObserver;
+import com.fileviewer.gui.GUI;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

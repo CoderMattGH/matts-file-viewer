@@ -1,6 +1,8 @@
 package com.fileviewer;
 
 import com.fileviewer.dataprocessing.DataViewer;
+import com.fileviewer.dataprocessing.FileLoader;
+import com.fileviewer.gui.GUI;
 
 import javax.swing.*;
 

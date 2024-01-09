@@ -1,4 +1,4 @@
-package com.fileviewer;
+package com.fileviewer.observer;
 
 public class FileProgObserver {
     private double percentage;

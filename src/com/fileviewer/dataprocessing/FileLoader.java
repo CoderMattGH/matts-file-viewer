@@ -1,4 +1,6 @@
-package com.fileviewer;
+package com.fileviewer.dataprocessing;
+
+import com.fileviewer.observer.FileProgObserver;
 
 import java.io.BufferedInputStream;
 import java.io.File;
