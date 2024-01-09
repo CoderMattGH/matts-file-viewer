@@ -145,7 +145,18 @@ public class GUI extends JFrame {
         nxtPageBtn.addActionListener(e -> {
                 System.out.println("Fetching next page.");
 
-                startByteIndex = startByteIndex + MAX_BYTES_PER_PAGE;
+                if (lastFileLoadedData == null)
+                    return;
+
+                int tempStartIndex = startByteIndex + MAX_BYTES_PER_PAGE;
+
+                if (tempStartIndex >= lastFileLoadedData.length) {
+                    displayMessage("No more data.");
+
+                    return;
+                }
+
+                startByteIndex = tempStartIndex;
 
                 setPageLabel(getCurrentPage());
 
@@ -285,8 +296,9 @@ public class GUI extends JFrame {
         FileProgObserver observer = new FileProgObserver();
         showProgressBar(observer);
 
-        dataViewer.displayData(lastFileLoadedData, observer, currentType, startByteIndex,
-                startByteIndex + MAX_BYTES_PER_PAGE);
+        dataViewer.displayData(lastFileLoadedData, observer, currentType,
+                startByteIndex, startByteIndex + MAX_BYTES_PER_PAGE);
+
         observer.setIsFinished(true);
     }
 
@@ -352,6 +364,11 @@ public class GUI extends JFrame {
 
     private void displayError(String errorMessage) {
         JOptionPane.showMessageDialog(this, errorMessage, "Error",
-                ERROR_MESSAGE);
+                JOptionPane.ERROR_MESSAGE);
+    }
+
+    private void displayMessage(String message) {
+        JOptionPane.showMessageDialog(this, message, "Information",
+                JOptionPane.INFORMATION_MESSAGE);
     }
 }

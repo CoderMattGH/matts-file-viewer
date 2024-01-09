@@ -45,6 +45,8 @@ public class DataViewer {
 
         StringBuilder str = new StringBuilder();
 
+        int count = 0;
+
         if (type == DataType.UTF8Bytes || type == DataType.UTF8Characters
                 || type == DataType.UTF16Bytes || type == DataType.UTF16Characters) {
             byte[] bytes = getByteArray(data, observer);
@@ -58,7 +60,6 @@ public class DataViewer {
                 reader = new InputStreamReader(bis, StandardCharsets.UTF_16);
 
             int dataByte;
-            int count = 0;
             try {
                 long skipped = reader.skip((long)startByteIndex);
 
@@ -88,8 +89,6 @@ public class DataViewer {
                 }
             }
         } else {
-            int count = 0;
-
             if (startByteIndex >= data.length) {
                 System.err.println("ERROR: Start Index is bigger than data size.");
                 return;
