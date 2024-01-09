@@ -19,7 +19,7 @@ public class DataViewer {
         UTF16Characters,
     }
 
-    private static final int APPEND_CHUNK_SIZE = 5000;
+    private static final int APPEND_CHUNK_SIZE = 1000;
 
     private GUI gui;
 
@@ -60,6 +60,11 @@ public class DataViewer {
             int count = 0;
             try {
                 while ((dataByte = reader.read()) != -1) {
+                    // Is task set to be cancelled?
+                    if (observer.isCancelled()) {
+                        return;
+                    }
+
                     processChunk(str, type, dataByte, count, observer, data.length);
                     count++;
                 }
@@ -78,6 +83,11 @@ public class DataViewer {
         } else {
             int count = 0;
             for (int readByte : data) {
+                // Is task set to be cancelled?
+                if (observer.isCancelled()) {
+                    return;
+                }
+
                 processChunk(str, type, readByte, count, observer, data.length);
                 count++;
             }
@@ -118,7 +128,7 @@ public class DataViewer {
             str.setLength(0);
         }
 
-        if (count % 200 == 0) {
+        if (count % 50 == 0) {
             sleep();
         }
     }

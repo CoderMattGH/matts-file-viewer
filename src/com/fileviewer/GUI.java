@@ -5,10 +5,8 @@ import com.fileviewer.dataprocessing.DataViewer;
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
-import javax.swing.text.StyledDocument;
 import java.awt.*;
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import static com.fileviewer.dataprocessing.DataViewer.DataType;
 
 public class GUI extends JFrame {
@@ -17,8 +15,7 @@ public class GUI extends JFrame {
 
     private int[] lastFileLoadedData;
 
-    //private JTextArea textArea;
-    private JTextPane textArea;
+    private final JTextPane textArea;
 
     public GUI(FileLoader fileLoader, DataViewer dataViewer) {
         System.out.println("Constructing GUI");
@@ -190,7 +187,7 @@ public class GUI extends JFrame {
      */
     private void showProgressBar(FileProgObserver observer) {
         Thread thread = new Thread(() -> {
-                ProgressBar progressBar = new ProgressBar();
+                ProgressBar progressBar = new ProgressBar(this, observer);
 
                 GUI.this.setEnabled(false);
 
@@ -198,7 +195,7 @@ public class GUI extends JFrame {
                     progressBar.setPercentage(observer.getPercentage());
 
                     try {
-                        Thread.sleep(200);
+                        Thread.sleep(20);
                     } catch (Exception e) {}
                 }
 
@@ -221,7 +218,6 @@ public class GUI extends JFrame {
     }
 
     public void appendTextOutput(final String text) {
-        //textArea.append(text);
         try {
             Document doc = textArea.getStyledDocument();
             doc.insertString(doc.getLength(), text, null);
