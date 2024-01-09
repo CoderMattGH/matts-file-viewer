@@ -3,13 +3,9 @@ package com.fileviewer;
 import com.fileviewer.dataprocessing.DataViewer;
 
 import javax.swing.*;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
-import javax.xml.crypto.Data;
 import java.awt.*;
 import java.io.*;
 import static com.fileviewer.dataprocessing.DataViewer.DataType;
-import static javax.swing.JOptionPane.ERROR_MESSAGE;
 
 public class GUI extends JFrame {
     private static final int MAX_BYTES_PER_PAGE = 10000;
