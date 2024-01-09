@@ -20,6 +20,8 @@ public class ProgressBar extends JDialog {
         this.setTitle("Processing...");
         this.setLayout(new BorderLayout());
 
+        this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+
         progressBar = new JProgressBar(0, 100);
         progressBar.setValue(0);
         progressBar.setStringPainted(true);

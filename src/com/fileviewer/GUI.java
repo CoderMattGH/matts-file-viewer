@@ -5,17 +5,25 @@ import com.fileviewer.dataprocessing.DataViewer;
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
+import javax.xml.crypto.Data;
 import java.awt.*;
 import java.io.*;
 import static com.fileviewer.dataprocessing.DataViewer.DataType;
 
 public class GUI extends JFrame {
+    private static final int MAX_BYTES_PER_PAGE = 10000;
+
+    private int startByteIndex = 0;      // Current starting point for reading bytes.
+    private DataType currentType = DataType.Characters;
+
     private final FileLoader fileLoader;
     private final DataViewer dataViewer;
 
     private int[] lastFileLoadedData;
 
-    private final JTextPane textArea;
+    private JTextArea textArea;
+    private JScrollPane scrollableTextArea;
+    private Container container;
 
     public GUI(FileLoader fileLoader, DataViewer dataViewer) {
         System.out.println("Constructing GUI");
@@ -30,7 +38,7 @@ public class GUI extends JFrame {
 
         this.setSize(1000, 800);
 
-        Container container = this.getContentPane();
+        container = this.getContentPane();
         container.setLayout(new BorderLayout());
 
         Container btnContainer = new Container();
@@ -39,11 +47,9 @@ public class GUI extends JFrame {
         JButton byteBtn = new JButton("BYTE VALUE");
         byteBtn.addActionListener(e -> {
                 Thread thread = new Thread(() -> {
-                    FileProgObserver observer = new FileProgObserver();
-                    showProgressBar(observer);
-
-                    dataViewer.displayData(lastFileLoadedData, observer, DataType.Bytes);
-                    observer.setIsFinished(true);
+                    startByteIndex = 0;
+                    currentType = DataType.Bytes;
+                    displayData(currentType);
                 });
                 thread.start();
             });
@@ -51,11 +57,9 @@ public class GUI extends JFrame {
         JButton charBtn = new JButton("CHAR VALUE");
         charBtn.addActionListener(e -> {
                 Thread thread = new Thread(() -> {
-                    FileProgObserver observer = new FileProgObserver();
-                    showProgressBar(observer);
-
-                    dataViewer.displayData(lastFileLoadedData, observer, DataType.Characters);
-                    observer.setIsFinished(true);
+                    startByteIndex = 0;
+                    currentType = DataType.Characters;
+                    displayData(currentType);
                 });
                 thread.start();
             });
@@ -63,11 +67,9 @@ public class GUI extends JFrame {
         JButton hexBtn = new JButton("HEX VALUE");
         hexBtn.addActionListener(e -> {
                 Thread thread = new Thread(() -> {
-                    FileProgObserver observer = new FileProgObserver();
-                    showProgressBar(observer);
-
-                    dataViewer.displayData(lastFileLoadedData, observer, DataType.Hex);
-                    observer.setIsFinished(true);
+                    startByteIndex = 0;
+                    currentType = DataType.Hex;
+                    displayData(currentType);
                 });
                 thread.start();
             });
@@ -75,11 +77,9 @@ public class GUI extends JFrame {
         JButton UTF8Btn = new JButton("UTF-8 VALUE");
         UTF8Btn.addActionListener(e -> {
                 Thread thread = new Thread(() -> {
-                    FileProgObserver observer = new FileProgObserver();
-                    showProgressBar(observer);
-
-                    dataViewer.displayData(lastFileLoadedData, observer, DataType.UTF8Characters);
-                    observer.setIsFinished(true);
+                    startByteIndex = 0;
+                    currentType = DataType.UTF8Characters;
+                    displayData(currentType);
                 });
                 thread.start();
             });
@@ -87,11 +87,9 @@ public class GUI extends JFrame {
         JButton UTF8ByteBtn = new JButton("UTF-8 BYTES");
         UTF8ByteBtn.addActionListener(e -> {
                 Thread thread = new Thread(() -> {
-                    FileProgObserver observer = new FileProgObserver();
-                    showProgressBar(observer);
-
-                    dataViewer.displayData(lastFileLoadedData, observer, DataType.UTF8Bytes);
-                    observer.setIsFinished(true);
+                    startByteIndex = 0;
+                    currentType = DataType.UTF8Bytes;
+                    displayData(currentType);
                 });
                 thread.start();
             });
@@ -99,11 +97,9 @@ public class GUI extends JFrame {
         JButton UTF16Btn = new JButton("UTF-16 VALUE");
         UTF16Btn.addActionListener(e -> {
                 Thread thread = new Thread(() -> {
-                    FileProgObserver observer = new FileProgObserver();
-                    showProgressBar(observer);
-
-                    dataViewer.displayData(lastFileLoadedData, observer, DataType.UTF16Characters);
-                    observer.setIsFinished(true);
+                    startByteIndex = 0;
+                    currentType = DataType.UTF16Characters;
+                    displayData(currentType);
                 });
                 thread.start();
             });
@@ -111,11 +107,9 @@ public class GUI extends JFrame {
         JButton UTF16ByteBtn = new JButton("UTF-16 BYTES");
         UTF16ByteBtn.addActionListener(e -> {
                 Thread thread = new Thread(() -> {
-                    FileProgObserver observer = new FileProgObserver();
-                    showProgressBar(observer);
-
-                    dataViewer.displayData(lastFileLoadedData, observer, DataType.UTF16Bytes);
-                    observer.setIsFinished(true);
+                    startByteIndex = 0;
+                    currentType = DataType.UTF16Bytes;
+                    displayData(currentType);
                 });
                 thread.start();
             });
@@ -124,6 +118,35 @@ public class GUI extends JFrame {
         runGCBtn.addActionListener(e -> {
                 System.out.println("Running Garbage Collection.");
                 System.gc();
+            });
+
+        JButton nxtPageBtn = new JButton("NEXT PAGE");
+        nxtPageBtn.addActionListener(e -> {
+                System.out.println("Fetching next page.");
+
+                startByteIndex = startByteIndex + MAX_BYTES_PER_PAGE;
+
+                Thread thread = new Thread(() -> {
+                        displayData(currentType);
+                    });
+                thread.start();
+            });
+
+        JButton prevPageBtn = new JButton("PREV PAGE");
+        prevPageBtn.addActionListener(e -> {
+                System.out.println("Fetching prev page.");
+
+                int result = startByteIndex - MAX_BYTES_PER_PAGE;
+
+                if (result < 0)
+                    startByteIndex = 0;
+                else
+                    startByteIndex = result;
+
+                Thread thread = new Thread(() -> {
+                        displayData(currentType);
+                    });
+                thread.start();
             });
 
         JButton button2 = new JButton("LOAD FILE");
@@ -137,16 +160,16 @@ public class GUI extends JFrame {
         btnContainer.add(UTF16Btn);
         btnContainer.add(UTF16ByteBtn);
 
-        btnContainer.add(runGCBtn);
+        btnContainer.add(prevPageBtn);
+        btnContainer.add(nxtPageBtn);
         btnContainer.add(button2);
 
-        textArea = new JTextPane();
-        textArea.setText("Nothing here yet.");
-        //textArea.setLineWrap(true);
-        //textArea.setWrapStyleWord(false);
+        textArea = new JTextArea();
+        textArea.setWrapStyleWord(false);
+        textArea.setLineWrap(true);
         textArea.setEditable(false);
 
-        JScrollPane scrollableTextArea = new JScrollPane(textArea);
+        scrollableTextArea = new JScrollPane(textArea);
         scrollableTextArea.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 
         container.add(btnContainer, BorderLayout.SOUTH);
@@ -174,12 +197,24 @@ public class GUI extends JFrame {
 
                     fileProgObserver.setPercentage(0);
 
-                    dataViewer.displayData(lastFileLoadedData, fileProgObserver, DataType.Characters);
+                    startByteIndex = 0;
+
+                    dataViewer.displayData(lastFileLoadedData, fileProgObserver, currentType,
+                            startByteIndex, startByteIndex + MAX_BYTES_PER_PAGE);
                     fileProgObserver.setIsFinished(true);
                 }
             );
             thread.start();
         }
+    }
+
+    private void displayData(DataType type) {
+        FileProgObserver observer = new FileProgObserver();
+        showProgressBar(observer);
+
+        dataViewer.displayData(lastFileLoadedData, observer, currentType, startByteIndex,
+                startByteIndex + MAX_BYTES_PER_PAGE);
+        observer.setIsFinished(true);
     }
 
     /**
@@ -208,21 +243,22 @@ public class GUI extends JFrame {
         thread.start();
     }
 
-    public void setTextOutput(String text) {
-        textArea.setText(text);
-    }
-
     public void resetTextOutput() {
-        textArea.setText(null);
-        textArea.revalidate();
+        container.remove(scrollableTextArea);
+
+        textArea = new JTextArea();
+        textArea.setEditable(false);
+        textArea.setLineWrap(true);
+        textArea.setWrapStyleWord(false);
+
+        scrollableTextArea = new JScrollPane(textArea);
+        scrollableTextArea.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+
+        container.add(scrollableTextArea, BorderLayout.CENTER);
+        container.revalidate();
     }
 
     public void appendTextOutput(final String text) {
-        try {
-            Document doc = textArea.getStyledDocument();
-            doc.insertString(doc.getLength(), text, null);
-        } catch (BadLocationException e) {
-            e.printStackTrace();
-        }
+        textArea.append(text);
     }
 }

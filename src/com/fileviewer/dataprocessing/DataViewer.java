@@ -19,7 +19,7 @@ public class DataViewer {
         UTF16Characters,
     }
 
-    private static final int APPEND_CHUNK_SIZE = 1000;
+    private static final int APPEND_CHUNK_SIZE = 500;
 
     private GUI gui;
 
@@ -31,7 +31,8 @@ public class DataViewer {
         this.gui = gui;
     }
 
-    public void displayData(int[] data, FileProgObserver observer, Enum<DataType> type) {
+    public void displayData(int[] data, FileProgObserver observer, Enum<DataType> type,
+            int startByteIndex, int endByteIndex) {
         if (data == null) {
             System.err.println("Data is null!");
             observer.setIsFinished(true);
@@ -59,13 +60,18 @@ public class DataViewer {
             int dataByte;
             int count = 0;
             try {
+                reader.skip((long)startByteIndex);
+
                 while ((dataByte = reader.read()) != -1) {
+                    if (count > endByteIndex)
+                        break;
+
                     // Is task set to be cancelled?
                     if (observer.isCancelled()) {
                         return;
                     }
 
-                    processChunk(str, type, dataByte, count, observer, data.length);
+                    processChunk(str, type, dataByte, count, observer, endByteIndex - startByteIndex);
                     count++;
                 }
 
@@ -82,13 +88,27 @@ public class DataViewer {
             }
         } else {
             int count = 0;
-            for (int readByte : data) {
+
+            if (startByteIndex >= data.length) {
+                System.err.println("ERROR: Start Index is bigger than data size.");
+                return;
+            }
+
+            int endIndex;
+            if (endByteIndex > data.length)
+                endIndex = data.length;
+            else
+                endIndex = endByteIndex;
+
+            for (int i = startByteIndex; i < endIndex; i++) {
+                int readByte = data[i];
+
                 // Is task set to be cancelled?
                 if (observer.isCancelled()) {
                     return;
                 }
 
-                processChunk(str, type, readByte, count, observer, data.length);
+                processChunk(str, type, readByte, count, observer, endIndex - startByteIndex);
                 count++;
             }
 
@@ -125,10 +145,11 @@ public class DataViewer {
             observer.setPercentage(percentage);
 
             gui.appendTextOutput(str.toString());
+
             str.setLength(0);
         }
 
-        if (count % 50 == 0) {
+        if (count % 10 == 0) {
             sleep();
         }
     }
