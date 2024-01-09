@@ -28,6 +28,7 @@ public class GUI extends JFrame {
 
     private JLabel pageInfoLabel;
     private JLabel fileSizeLabel;
+    private JLabel fileNameLabel;
 
     public GUI(FileLoader fileLoader, DataViewer dataViewer) {
         System.out.println("Constructing GUI");
@@ -51,7 +52,7 @@ public class GUI extends JFrame {
         Container btnContainer = new Container();
         btnContainer.setLayout(new GridLayout(2, 5));
 
-        JButton byteBtn = new JButton("BYTE VALUE");
+        JButton byteBtn = new JButton("BYTE VALUES");
         byteBtn.addActionListener(e -> {
                 Thread thread = new Thread(() -> {
                     startByteIndex = 0;
@@ -63,7 +64,7 @@ public class GUI extends JFrame {
                 thread.start();
             });
 
-        JButton charBtn = new JButton("CHAR VALUE");
+        JButton charBtn = new JButton("CHAR VALUES");
         charBtn.addActionListener(e -> {
                 Thread thread = new Thread(() -> {
                     startByteIndex = 0;
@@ -75,7 +76,7 @@ public class GUI extends JFrame {
                 thread.start();
             });
 
-        JButton hexBtn = new JButton("HEX VALUE");
+        JButton hexBtn = new JButton("HEX VALUES");
         hexBtn.addActionListener(e -> {
                 Thread thread = new Thread(() -> {
                     startByteIndex = 0;
@@ -87,7 +88,7 @@ public class GUI extends JFrame {
                 thread.start();
             });
 
-        JButton UTF8Btn = new JButton("UTF-8 VALUE");
+        JButton UTF8Btn = new JButton("UTF-8 VALUES");
         UTF8Btn.addActionListener(e -> {
                 Thread thread = new Thread(() -> {
                     startByteIndex = 0;
@@ -99,7 +100,7 @@ public class GUI extends JFrame {
                 thread.start();
             });
 
-        JButton UTF8ByteBtn = new JButton("UTF-8 BYTES");
+        JButton UTF8ByteBtn = new JButton("UTF-8 CODES");
         UTF8ByteBtn.addActionListener(e -> {
                 Thread thread = new Thread(() -> {
                     startByteIndex = 0;
@@ -111,7 +112,7 @@ public class GUI extends JFrame {
                 thread.start();
             });
 
-        JButton UTF16Btn = new JButton("UTF-16 VALUE");
+        JButton UTF16Btn = new JButton("UTF-16 VALUES");
         UTF16Btn.addActionListener(e -> {
                 Thread thread = new Thread(() -> {
                     startByteIndex = 0;
@@ -123,7 +124,7 @@ public class GUI extends JFrame {
                 thread.start();
             });
 
-        JButton UTF16ByteBtn = new JButton("UTF-16 BYTES");
+        JButton UTF16ByteBtn = new JButton("UTF-16 CODES");
         UTF16ByteBtn.addActionListener(e -> {
                 Thread thread = new Thread(() -> {
                     startByteIndex = 0;
@@ -227,10 +228,15 @@ public class GUI extends JFrame {
         setFileSizeLabel(0);
         fileSizeLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
+        fileNameLabel = new JLabel();
+        setFileNameLabel("None");
+        fileNameLabel.setHorizontalAlignment(SwingConstants.CENTER);
+
         Container infoControlsContainer = new Container();
         infoControlsContainer.setLayout(new GridLayout(1, 2));
 
         infoControlsContainer.add(pageInfoLabel);
+        infoControlsContainer.add(fileNameLabel);
         infoControlsContainer.add(fileSizeLabel);
 
         controlsContainer.add(btnContainer);
@@ -266,22 +272,25 @@ public class GUI extends JFrame {
 
                     File file = fileChooser.getSelectedFile();
 
-                    lastFileLoadedData = fileLoader.loadFile(file, fileProgObserver);
+                    int[] tempFileData = fileLoader.loadFile(file, fileProgObserver);
 
                     fileProgObserver.setPercentage(0);
 
                     // If an error occurred or file was null then return.
-                    if (lastFileLoadedData == null) {
+                    if (tempFileData == null) {
                         displayError("File size was too large.");
                         fileProgObserver.setIsFinished(true);
 
                         return;
                     }
 
+                    lastFileLoadedData = tempFileData;
+
                     startByteIndex = 0;
 
                     setPageLabel(getCurrentPage());
                     setFileSizeLabel(lastFileLoadedData.length);
+                    setFileNameLabel(file.getName());
 
                     dataViewer.displayData(lastFileLoadedData, fileProgObserver, currentType,
                             startByteIndex, startByteIndex + MAX_BYTES_PER_PAGE);
@@ -360,6 +369,10 @@ public class GUI extends JFrame {
 
     private void setFileSizeLabel(int fileSize) {
         fileSizeLabel.setText("File size: " + fileSize + " bytes");
+    }
+
+    private void setFileNameLabel(String fileName) {
+        fileNameLabel.setText("Filename: " + fileName);
     }
 
     private void displayError(String errorMessage) {
