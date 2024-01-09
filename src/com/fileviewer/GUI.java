@@ -9,6 +9,7 @@ import javax.xml.crypto.Data;
 import java.awt.*;
 import java.io.*;
 import static com.fileviewer.dataprocessing.DataViewer.DataType;
+import static javax.swing.JOptionPane.ERROR_MESSAGE;
 
 public class GUI extends JFrame {
     private static final int MAX_BYTES_PER_PAGE = 10000;
@@ -54,6 +55,8 @@ public class GUI extends JFrame {
         byteBtn.addActionListener(e -> {
                 Thread thread = new Thread(() -> {
                     startByteIndex = 0;
+                    setPageLabel(getCurrentPage());
+
                     currentType = DataType.Bytes;
                     displayData(currentType);
                 });
@@ -64,6 +67,8 @@ public class GUI extends JFrame {
         charBtn.addActionListener(e -> {
                 Thread thread = new Thread(() -> {
                     startByteIndex = 0;
+                    setPageLabel(getCurrentPage());
+
                     currentType = DataType.Characters;
                     displayData(currentType);
                 });
@@ -74,6 +79,8 @@ public class GUI extends JFrame {
         hexBtn.addActionListener(e -> {
                 Thread thread = new Thread(() -> {
                     startByteIndex = 0;
+                    setPageLabel(getCurrentPage());
+
                     currentType = DataType.Hex;
                     displayData(currentType);
                 });
@@ -84,6 +91,8 @@ public class GUI extends JFrame {
         UTF8Btn.addActionListener(e -> {
                 Thread thread = new Thread(() -> {
                     startByteIndex = 0;
+                    setPageLabel(getCurrentPage());
+
                     currentType = DataType.UTF8Characters;
                     displayData(currentType);
                 });
@@ -94,6 +103,8 @@ public class GUI extends JFrame {
         UTF8ByteBtn.addActionListener(e -> {
                 Thread thread = new Thread(() -> {
                     startByteIndex = 0;
+                    setPageLabel(getCurrentPage());
+
                     currentType = DataType.UTF8Bytes;
                     displayData(currentType);
                 });
@@ -104,6 +115,8 @@ public class GUI extends JFrame {
         UTF16Btn.addActionListener(e -> {
                 Thread thread = new Thread(() -> {
                     startByteIndex = 0;
+                    setPageLabel(getCurrentPage());
+
                     currentType = DataType.UTF16Characters;
                     displayData(currentType);
                 });
@@ -114,6 +127,8 @@ public class GUI extends JFrame {
         UTF16ByteBtn.addActionListener(e -> {
                 Thread thread = new Thread(() -> {
                     startByteIndex = 0;
+                    setPageLabel(getCurrentPage());
+
                     currentType = DataType.UTF16Bytes;
                     displayData(currentType);
                 });
@@ -195,9 +210,11 @@ public class GUI extends JFrame {
 
         pageInfoLabel = new JLabel();
         setPageLabel(getCurrentPage());
+        pageInfoLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
         fileSizeLabel = new JLabel();
         setFileSizeLabel(0);
+        fileSizeLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
         Container infoControlsContainer = new Container();
         infoControlsContainer.setLayout(new GridLayout(1, 2));
@@ -241,6 +258,14 @@ public class GUI extends JFrame {
                     lastFileLoadedData = fileLoader.loadFile(file, fileProgObserver);
 
                     fileProgObserver.setPercentage(0);
+
+                    // If an error occurred or file was null then return.
+                    if (lastFileLoadedData == null) {
+                        displayError("File size was too large.");
+                        fileProgObserver.setIsFinished(true);
+
+                        return;
+                    }
 
                     startByteIndex = 0;
 
@@ -323,5 +348,10 @@ public class GUI extends JFrame {
 
     private void setFileSizeLabel(int fileSize) {
         fileSizeLabel.setText("File size: " + fileSize + " bytes");
+    }
+
+    private void displayError(String errorMessage) {
+        JOptionPane.showMessageDialog(this, errorMessage, "Error",
+                ERROR_MESSAGE);
     }
 }

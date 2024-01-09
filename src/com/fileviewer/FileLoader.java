@@ -9,12 +9,24 @@ public class FileLoader {
         System.out.println("Constructing File Loader");
     }
 
+    /**
+     * Returns the bytes from the file in an integer array.
+     *
+     * NOTE: Returns null if an error occurred.
+     */
     public int[] loadFile(File file, FileProgObserver fileProgObserver) {
-        int[] dataArray = new int[(int)file.length()];
+        long fileSize = file.length();
+
+        if (fileSize >= Integer.MAX_VALUE) {
+            System.err.println("File size not supported!");
+
+            return null;
+        }
+
+        int[] dataArray = new int[(int)fileSize];
 
         try {
             FileInputStream fis = new FileInputStream(file);
-            long fileSize = file.length();
 
             BufferedInputStream bis = new BufferedInputStream(fis);
 
@@ -33,6 +45,8 @@ public class FileLoader {
             fis.close();
         } catch (Exception e) {
             e.printStackTrace();
+
+            return null;
         }
 
         System.out.println("Finished loading file...");
