@@ -49,7 +49,7 @@ public class DataViewer {
 
         if (type == DataType.UTF8Bytes || type == DataType.UTF8Characters
                 || type == DataType.UTF16Bytes || type == DataType.UTF16Characters) {
-            byte[] bytes = getByteArray(data, observer);
+            byte[] bytes = getByteArray(data, observer, startByteIndex, endByteIndex);
 
             ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
             InputStreamReader reader;
@@ -119,17 +119,20 @@ public class DataViewer {
         observer.setPercentage(100);
     }
 
-    private byte[] getByteArray(int[] data, FileProgObserver observer) {
-        byte[] bytes = new byte[data.length];
+    private byte[] getByteArray(int[] data, FileProgObserver observer, int startIndex,
+            int endIndex) {
+        int size = endIndex - startIndex;
+
+        byte[] bytes = new byte[size];
 
         observer.setPercentage(0);
         double percentage;
 
-        for (int i = 0; i < data.length; i++) {
+        for (int i = 0; i <= size; i++) {
             percentage = ((double)i / data.length) * 100;
             observer.setPercentage(percentage);
 
-            bytes[i] = (byte)data[i];
+            bytes[i] = (byte)data[i + startIndex];
         }
 
         return bytes;
