@@ -4,6 +4,7 @@ import com.fileviewer.dataprocessing.DataViewer;
 
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
 import javax.swing.text.StyledDocument;
 import java.awt.*;
 import java.io.*;
@@ -16,7 +17,8 @@ public class GUI extends JFrame {
 
     private int[] lastFileLoadedData;
 
-    private JTextArea textArea;
+    //private JTextArea textArea;
+    private JTextPane textArea;
 
     public GUI(FileLoader fileLoader, DataViewer dataViewer) {
         System.out.println("Constructing GUI");
@@ -141,10 +143,10 @@ public class GUI extends JFrame {
         btnContainer.add(runGCBtn);
         btnContainer.add(button2);
 
-        textArea = new JTextArea();
+        textArea = new JTextPane();
         textArea.setText("Nothing here yet.");
-        textArea.setLineWrap(true);
-        textArea.setWrapStyleWord(false);
+        //textArea.setLineWrap(true);
+        //textArea.setWrapStyleWord(false);
         textArea.setEditable(false);
 
         JScrollPane scrollableTextArea = new JScrollPane(textArea);
@@ -163,7 +165,7 @@ public class GUI extends JFrame {
 
         // If file exists
         if (returnVal == JFileChooser.APPROVE_OPTION) {
-            Thread t = new Thread(() -> {
+            Thread thread = new Thread(() -> {
                     System.out.println("Loading file...");
 
                     FileProgObserver fileProgObserver = new FileProgObserver();
@@ -179,7 +181,7 @@ public class GUI extends JFrame {
                     fileProgObserver.setIsFinished(true);
                 }
             );
-            t.start();
+            thread.start();
         }
     }
 
@@ -219,6 +221,12 @@ public class GUI extends JFrame {
     }
 
     public void appendTextOutput(final String text) {
-        textArea.append(text);
+        //textArea.append(text);
+        try {
+            Document doc = textArea.getStyledDocument();
+            doc.insertString(doc.getLength(), text, null);
+        } catch (BadLocationException e) {
+            e.printStackTrace();
+        }
     }
 }

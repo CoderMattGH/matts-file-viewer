@@ -19,7 +19,7 @@ public class DataViewer {
         UTF16Characters,
     }
 
-    private static final int APPEND_CHUNK_SIZE = 100;
+    private static final int APPEND_CHUNK_SIZE = 5000;
 
     private GUI gui;
 
@@ -109,14 +109,16 @@ public class DataViewer {
             FileProgObserver observer, int dataSize) {
         getTypeOutput(type, str, dataByte);
 
-        // Append in 1000 char chunks
+        // Append chars in chunks
         if (count % APPEND_CHUNK_SIZE == 0) {
             double percentage = ((double)count / dataSize) * 100;
             observer.setPercentage(percentage);
 
             gui.appendTextOutput(str.toString());
             str.setLength(0);
+        }
 
+        if (count % 200 == 0) {
             sleep();
         }
     }
