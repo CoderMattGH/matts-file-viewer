@@ -2,9 +2,11 @@ package com.fileviewer.gui;
 
 import com.fileviewer.dataprocessing.DataViewer;
 import com.fileviewer.dataprocessing.FileLoader;
+import com.fileviewer.gui.progressbar.ProgressBar;
+import com.fileviewer.gui.progressbar.ProgressBarFactory;
+import com.fileviewer.gui.progressbar.ProgressBarImpl;
 import com.fileviewer.observer.ProgObserver;
 import com.fileviewer.observer.ProgObserverFactory;
-import com.fileviewer.observer.ProgObserverImpl;
 
 import javax.swing.*;
 import java.awt.*;
@@ -20,6 +22,7 @@ public class GUI extends JFrame {
     private final FileLoader fileLoader;
     private final DataViewer dataViewer;
     private final ProgObserverFactory progObserverFactory;
+    private final ProgressBarFactory progressBarFactory;
 
     private int[] lastFileLoadedData;
 
@@ -32,7 +35,7 @@ public class GUI extends JFrame {
     private JLabel fileNameLabel;
 
     public GUI(FileLoader fileLoader, DataViewer dataViewer,
-            ProgObserverFactory progObserverFactory) {
+            ProgObserverFactory progObserverFactory, ProgressBarFactory progressBarFactory) {
         System.out.println("Constructing GUI");
 
         // Dependencies.
@@ -40,6 +43,7 @@ public class GUI extends JFrame {
         this.dataViewer = dataViewer;
         dataViewer.setGUI(this);
         this.progObserverFactory = progObserverFactory;
+        this.progressBarFactory = progressBarFactory;
 
         this.setTitle("File Viewer v0.1");
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -200,7 +204,7 @@ public class GUI extends JFrame {
      */
     private void showProgressBar(ProgObserver observer) {
         Thread thread = new Thread(() -> {
-                ProgressBar progressBar = new ProgressBarImpl(this, observer);
+                ProgressBar progressBar = progressBarFactory.getInstance(this ,observer);
 
                 GUI.this.setEnabled(false);
 

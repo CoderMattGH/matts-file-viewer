@@ -1,4 +1,4 @@
-package com.fileviewer.gui;
+package com.fileviewer.gui.progressbar;
 
 import com.fileviewer.observer.ProgObserver;
 
@@ -9,7 +9,7 @@ public class ProgressBarImpl extends JDialog implements ProgressBar {
     private final JProgressBar progressBar;
     private final ProgObserver observer;
 
-    public ProgressBarImpl(JFrame parent, ProgObserver observer) {
+    protected ProgressBarImpl(JFrame parent, ProgObserver observer) {
         super(parent);
 
         this.observer = observer;

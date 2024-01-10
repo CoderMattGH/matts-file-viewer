@@ -1,4 +1,4 @@
-package com.fileviewer.gui;
+package com.fileviewer.gui.progressbar;
 
 import javax.swing.*;
 
