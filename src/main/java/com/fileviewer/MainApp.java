@@ -3,19 +3,23 @@ package com.fileviewer;
 import com.fileviewer.dataprocessing.DataViewer;
 import com.fileviewer.dataprocessing.FileLoader;
 import com.fileviewer.gui.GUI;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 
 public class MainApp {
+    private static final Logger logger = LogManager.getLogger(MainApp.class);
+
     public MainApp() {
-        System.out.println("Constructing Main App");
+        logger.info("Constructing MainApp.");
     }
 
     public static void main(String[] args) {
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception e) {
-            System.err.println("Error setting look and feel.");
+            logger.error("Unable to set Look and Feel.");
             e.printStackTrace();
         }
 
@@ -24,10 +28,11 @@ public class MainApp {
     }
 
     public void runApp() {
-        System.out.println("Running FileViewer v0.1");
+        logger.info("Running File Viewer.");
 
-        GUI gui = new GUI(new FileLoader(), new DataViewer());
+        FileLoader fileLoader = new FileLoader();
+        DataViewer dataViewer = new DataViewer();
 
-        // WebScraperGUI scraper = new WebScraperGUI();
+        GUI gui = new GUI(fileLoader, dataViewer);
     }
 }

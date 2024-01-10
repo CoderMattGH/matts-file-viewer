@@ -1,0 +1,13 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="FileViewer:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/FileViewer_jar</output-path>
+    <root id="archive" name="FILE_VIEWER.jar">
+      <element id="directory" name="META-INF">
+        <element id="file-copy" path="$PROJECT_DIR$/src/main/resources/META-INF/MANIFEST.MF" />
+      </element>
+      <element id="module-output" name="FILE_VIEWER" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/apache/logging/log4j/log4j-api/2.22.1/log4j-api-2.22.1.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/apache/logging/log4j/log4j-core/2.22.1/log4j-core-2.22.1.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>
