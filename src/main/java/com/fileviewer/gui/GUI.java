@@ -2,7 +2,9 @@ package com.fileviewer.gui;
 
 import com.fileviewer.dataprocessing.DataViewer;
 import com.fileviewer.dataprocessing.FileLoader;
-import com.fileviewer.observer.FileProgObserver;
+import com.fileviewer.observer.ProgObserver;
+import com.fileviewer.observer.ProgObserverFactory;
+import com.fileviewer.observer.ProgObserverImpl;
 
 import javax.swing.*;
 import java.awt.*;
@@ -17,6 +19,7 @@ public class GUI extends JFrame {
 
     private final FileLoader fileLoader;
     private final DataViewer dataViewer;
+    private final ProgObserverFactory progObserverFactory;
 
     private int[] lastFileLoadedData;
 
@@ -28,13 +31,15 @@ public class GUI extends JFrame {
     private JLabel fileSizeLabel;
     private JLabel fileNameLabel;
 
-    public GUI(FileLoader fileLoader, DataViewer dataViewer) {
+    public GUI(FileLoader fileLoader, DataViewer dataViewer,
+            ProgObserverFactory progObserverFactory) {
         System.out.println("Constructing GUI");
 
+        // Dependencies.
         this.fileLoader = fileLoader;
-
         this.dataViewer = dataViewer;
-        dataViewer.setGui(this);
+        dataViewer.setGUI(this);
+        this.progObserverFactory = progObserverFactory;
 
         this.setTitle("File Viewer v0.1");
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -147,19 +152,19 @@ public class GUI extends JFrame {
             Thread thread = new Thread(() -> {
                     System.out.println("Loading file...");
 
-                    FileProgObserver fileProgObserver = new FileProgObserver();
-                    showProgressBar(fileProgObserver);
+                    ProgObserver observer = progObserverFactory.getInstance();
+                    showProgressBar(observer);
 
                     File file = fileChooser.getSelectedFile();
 
-                    int[] tempFileData = fileLoader.loadFile(file, fileProgObserver);
+                    int[] tempFileData = fileLoader.loadFile(file, observer);
 
-                    fileProgObserver.setPercentage(0);
+                    observer.setPercentage(0);
 
                     // If an error occurred or file was null then return.
                     if (tempFileData == null) {
                         displayError("File size was too large.");
-                        fileProgObserver.setIsFinished(true);
+                        observer.setIsFinished(true);
 
                         return;
                     }
@@ -172,17 +177,16 @@ public class GUI extends JFrame {
                     setFileSizeLabel(lastFileLoadedData.length);
                     setFileNameLabel(file.getName());
 
-                    dataViewer.displayData(lastFileLoadedData, fileProgObserver, currentType,
+                    dataViewer.displayData(lastFileLoadedData, observer, currentType,
                             startByteIndex, startByteIndex + MAX_BYTES_PER_PAGE);
-                    fileProgObserver.setIsFinished(true);
-                }
-            );
+                    observer.setIsFinished(true);
+                });
             thread.start();
         }
     }
 
     private void displayData(DataType type) {
-        FileProgObserver observer = new FileProgObserver();
+        ProgObserver observer = progObserverFactory.getInstance();
         showProgressBar(observer);
 
         dataViewer.displayData(lastFileLoadedData, observer, currentType,
@@ -194,9 +198,9 @@ public class GUI extends JFrame {
     /**
      * Non-blocking method call.  Creates a thread to show a progress bar and then returns.
      */
-    private void showProgressBar(FileProgObserver observer) {
+    private void showProgressBar(ProgObserver observer) {
         Thread thread = new Thread(() -> {
-                ProgressBar progressBar = new ProgressBar(this, observer);
+                ProgressBar progressBar = new ProgressBarImpl(this, observer);
 
                 GUI.this.setEnabled(false);
 

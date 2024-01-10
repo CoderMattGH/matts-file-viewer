@@ -1,61 +1,13 @@
 package com.fileviewer.gui;
 
-import com.fileviewer.observer.FileProgObserver;
-
 import javax.swing.*;
-import java.awt.*;
 
-public class ProgressBar extends JDialog {
-    private final JProgressBar progressBar;
-    private final FileProgObserver observer;
+public interface ProgressBar {
+    void setPercentage(double percentage);
 
-    public ProgressBar(JFrame parent, FileProgObserver observer) {
-        super(parent);
+    void setValue(int value);
 
-        this.observer = observer;
+    void setTitle(String title);
 
-        System.out.println("Constructing ProgressBar...");
-
-        this.setSize(200, 100);
-        this.setResizable(false);
-        this.setAlwaysOnTop(true);
-        this.setTitle("Processing...");
-        this.setLayout(new BorderLayout());
-
-        this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-
-        progressBar = new JProgressBar(0, 100);
-        progressBar.setValue(0);
-        progressBar.setStringPainted(true);
-
-        this.add(progressBar, BorderLayout.CENTER);
-
-        JButton cancelBtn = new JButton("Cancel");
-        cancelBtn.addActionListener(e -> {
-                cancelTask();
-            });
-        this.add(cancelBtn, BorderLayout.SOUTH);
-
-        this.setVisible(true);
-    }
-
-    public void setPercentage(double percentage) {
-        int value = (int)percentage;
-
-        progressBar.setValue(value);
-    }
-
-    public void setValue(int value) {
-        progressBar.setValue(value);
-    }
-
-    public void destroyProgressBar() {
-        this.setVisible(false);
-        this.dispose();
-    }
-
-    private void cancelTask() {
-        System.out.println("Trying to cancel...");
-        this.observer.setCancelled(true);
-    }
+    void destroyProgressBar();
 }

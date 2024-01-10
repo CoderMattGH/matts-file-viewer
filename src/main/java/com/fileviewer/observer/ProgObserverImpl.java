@@ -1,11 +1,11 @@
 package com.fileviewer.observer;
 
-public class FileProgObserver {
+public class ProgObserverImpl implements ProgObserver {
     private double percentage;
     private boolean finished;
     private boolean cancelled;
 
-    public FileProgObserver() {
+    protected ProgObserverImpl() {
         System.out.println("Constructing File Progress Observer.");
 
         percentage = 0;
