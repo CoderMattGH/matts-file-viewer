@@ -1,12 +1,17 @@
 package com.fileviewer.observer;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 public class ProgObserverImpl implements ProgObserver {
+    private final Logger logger = LogManager.getLogger(ProgObserverImpl.class);
+
     private double percentage;
     private boolean finished;
     private boolean cancelled;
 
     protected ProgObserverImpl() {
-        System.out.println("Constructing File Progress Observer.");
+        logger.info("Constructing ProgObserverImpl.");
 
         percentage = 0;
         finished = false;

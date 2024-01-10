@@ -1,21 +1,25 @@
 package com.fileviewer.dataprocessing;
 
 import com.fileviewer.observer.ProgObserver;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 
 public class FileLoaderImpl implements FileLoader {
+    private static final Logger logger = LogManager.getLogger(FileLoaderImpl.class);
+
     public FileLoaderImpl() {
-        System.out.println("Constructing File Loader");
+        logger.info("Constructing FileLoaderImpl.");
     }
 
     public int[] loadFile(File file, ProgObserver observer) {
         long fileSize = file.length();
 
         if (fileSize >= Integer.MAX_VALUE) {
-            System.err.println("File size not supported!");
+            logger.error("File size too large!  Must be smaller than Integer.MAX_VALUE bytes.");
 
             return null;
         }
@@ -33,7 +37,6 @@ public class FileLoaderImpl implements FileLoader {
                 double percentage = ((double)i / fileSize) * 100;
                 observer.setPercentage(percentage);
 
-                //data.add(readByte);
                 dataArray[i] = readByte;
                 i++;
             }
@@ -46,7 +49,7 @@ public class FileLoaderImpl implements FileLoader {
             return null;
         }
 
-        System.out.println("Finished loading file...");
+        logger.info("Finished loading file: " + file.getAbsolutePath());
 
         return dataArray;
     }

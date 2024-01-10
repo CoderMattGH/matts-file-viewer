@@ -4,9 +4,10 @@ import com.fileviewer.dataprocessing.DataViewer;
 import com.fileviewer.dataprocessing.FileLoader;
 import com.fileviewer.gui.progressbar.ProgressBar;
 import com.fileviewer.gui.progressbar.ProgressBarFactory;
-import com.fileviewer.gui.progressbar.ProgressBarImpl;
 import com.fileviewer.observer.ProgObserver;
 import com.fileviewer.observer.ProgObserverFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -14,6 +15,8 @@ import java.io.*;
 import static com.fileviewer.dataprocessing.DataViewer.DataType;
 
 public class GUI extends JFrame {
+    private static final Logger logger = LogManager.getLogger(GUI.class);
+
     private static final int MAX_BYTES_PER_PAGE = 10000;
 
     private int startByteIndex = 0;      // Current start index for reading bytes.
@@ -28,15 +31,15 @@ public class GUI extends JFrame {
 
     private JTextArea textArea;
     private JScrollPane scrollableTextArea;
-    private Container container;
+    private final Container container;
 
-    private JLabel pageInfoLabel;
-    private JLabel fileSizeLabel;
-    private JLabel fileNameLabel;
+    private final JLabel pageInfoLabel;
+    private final JLabel fileSizeLabel;
+    private final JLabel fileNameLabel;
 
     public GUI(FileLoader fileLoader, DataViewer dataViewer,
             ProgObserverFactory progObserverFactory, ProgressBarFactory progressBarFactory) {
-        System.out.println("Constructing GUI");
+        logger.info("Constructing GUI.");
 
         // Dependencies.
         this.fileLoader = fileLoader;
@@ -206,20 +209,16 @@ public class GUI extends JFrame {
         Thread thread = new Thread(() -> {
                 ProgressBar progressBar = progressBarFactory.getInstance(this ,observer);
 
-                GUI.this.setEnabled(false);
-
                 while(!observer.isFinished()) {
                     progressBar.setPercentage(observer.getPercentage());
 
                     try {
                         Thread.sleep(20);
-                    } catch (Exception e) {}
+                    } catch (Exception ignored) {}
                 }
 
-                System.out.println("Trying to destroy progress bar...");
+                logger.info("Trying to destroy ProgressBar...");
                 progressBar.destroyProgressBar();
-
-                GUI.this.setEnabled(true);
             }
         );
         thread.start();
@@ -285,7 +284,7 @@ public class GUI extends JFrame {
     }
 
     private void showNextPage() {
-        System.out.println("Fetching next page.");
+        logger.info("Fetching next page.");
 
         if (lastFileLoadedData == null)
             return;
@@ -309,7 +308,7 @@ public class GUI extends JFrame {
     }
 
     private void showPrevPage() {
-        System.out.println("Fetching prev page.");
+        logger.info("Fetching previous page.");
 
         int result = startByteIndex - MAX_BYTES_PER_PAGE;
 
@@ -327,7 +326,7 @@ public class GUI extends JFrame {
     }
 
     private void showFirstPage() {
-        System.out.println("Setting first page");
+        logger.info("Fetching first page.");
 
         startByteIndex = 0;
 

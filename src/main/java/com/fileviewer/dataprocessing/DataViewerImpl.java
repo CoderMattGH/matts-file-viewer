@@ -18,7 +18,7 @@ public class DataViewerImpl implements DataViewer {
     private GUI gui;
 
     public DataViewerImpl() {
-        System.out.println("Constructing DataViewerImpl");
+        logger.info("Constructing DataViewerImpl.");
     }
 
     public void setGUI(GUI gui) {
@@ -28,7 +28,7 @@ public class DataViewerImpl implements DataViewer {
     public void displayData(int[] data, ProgObserver observer, Enum<DataType> type,
             int startByteIndex, int endByteIndex) {
         if (data == null) {
-            System.err.println("Data is null!");
+            logger.error("Data cannot be null. Returning.");
             observer.setIsFinished(true);
 
             return;
@@ -56,7 +56,6 @@ public class DataViewerImpl implements DataViewer {
             int dataByte;
             try {
                 while ((dataByte = reader.read()) != -1) {
-                    // Is task set to be cancelled?
                     if (observer.isCancelled()) {
                         return;
                     }
@@ -78,7 +77,7 @@ public class DataViewerImpl implements DataViewer {
             }
         } else {
             if (startByteIndex >= data.length) {
-                System.err.println("ERROR: Start Index is bigger than data size.");
+                logger.error("Start Index cannot be bigger than data size. Returning.");
                 return;
             }
 
@@ -91,7 +90,6 @@ public class DataViewerImpl implements DataViewer {
             for (int i = startByteIndex; i < endIndex; i++) {
                 int readByte = data[i];
 
-                // Is task set to be cancelled?
                 if (observer.isCancelled()) {
                     return;
                 }
@@ -158,7 +156,9 @@ public class DataViewerImpl implements DataViewer {
         } else if (type == DataType.Hex) {
             str.append(String.format("%02x ", dataByte));
         } else {
-            System.err.println("No Data Type detected when rendering output!");
+            logger.error("No Data Type detected when rendering output.");
+
+            throw new RuntimeException("No Data Type detected.");
         }
     }
 
