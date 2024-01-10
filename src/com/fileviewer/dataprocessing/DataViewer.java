@@ -19,7 +19,7 @@ public class DataViewer {
         UTF16Characters,
     }
 
-    private static final int APPEND_CHUNK_SIZE = 400;
+    private static final int APPEND_CHUNK_SIZE = 600;
 
     private GUI gui;
 
@@ -151,7 +151,7 @@ public class DataViewer {
             str.setLength(0);
         }
 
-        if (count % 10 == 0) {
+        if (count % 100 == 0) {
             sleep();
         }
     }
