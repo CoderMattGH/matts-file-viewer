@@ -157,8 +157,6 @@ public class GUI extends JFrame {
         // If file exists
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             Thread thread = new Thread(() -> {
-                    System.out.println("Loading file...");
-
                     ProgObserver observer = progObserverFactory.getInstance();
                     showProgressBar(observer);
 

@@ -1,11 +1,15 @@
 package com.fileviewer.gui.progressbar;
 
 import com.fileviewer.observer.ProgObserver;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
 
 public class ProgressBarImpl extends JDialog implements ProgressBar {
+    private final static Logger logger = LogManager.getLogger(ProgressBarImpl.class);
+
     private final JProgressBar progressBar;
     private final ProgObserver observer;
 
@@ -14,7 +18,7 @@ public class ProgressBarImpl extends JDialog implements ProgressBar {
 
         this.observer = observer;
 
-        System.out.println("Constructing ProgressBar...");
+        logger.info("Constructing ProgressBarImpl");
 
         this.setSize(200, 100);
         this.setResizable(false);
@@ -60,7 +64,8 @@ public class ProgressBarImpl extends JDialog implements ProgressBar {
     }
 
     private void cancelTask() {
-        System.out.println("Trying to cancel...");
+        logger.info("Trying to cancel task...");
+
         this.observer.setCancelled(true);
     }
 }
