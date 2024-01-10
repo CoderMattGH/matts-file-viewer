@@ -11,7 +11,7 @@ public class ProgObserverImpl implements ProgObserver {
     private boolean cancelled;
 
     protected ProgObserverImpl() {
-        logger.info("Constructing ProgObserverImpl.");
+        logger.debug("Constructing ProgObserverImpl.");
 
         percentage = 0;
         finished = false;

@@ -7,10 +7,10 @@ import org.apache.logging.log4j.Logger;
 import javax.swing.*;
 
 public class ProgressBarFactoryImpl implements ProgressBarFactory {
-    private final static Logger logger =LogManager.getLogger(ProgressBarFactoryImpl.class);
+    private final static Logger logger = LogManager.getLogger(ProgressBarFactoryImpl.class);
 
     public ProgressBarFactoryImpl() {
-        logger.info("Constructing ProgressBarFactoryImpl.");
+        logger.debug("Constructing ProgressBarFactoryImpl.");
     }
 
     public ProgressBar getInstance(JFrame parent, ProgObserver observer) {

@@ -16,9 +16,9 @@ public class ProgressBarImpl extends JDialog implements ProgressBar {
     protected ProgressBarImpl(JFrame parent, ProgObserver observer) {
         super(parent);
 
-        this.observer = observer;
+        logger.debug("Constructing ProgressBarImpl");
 
-        logger.info("Constructing ProgressBarImpl");
+        this.observer = observer;
 
         this.setSize(200, 100);
         this.setResizable(false);

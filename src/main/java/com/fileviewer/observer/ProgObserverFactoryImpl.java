@@ -7,7 +7,7 @@ public class ProgObserverFactoryImpl implements ProgObserverFactory {
     private static final Logger logger = LogManager.getLogger(ProgObserverFactoryImpl.class);
 
     public ProgObserverFactoryImpl() {
-        logger.info("Constructing ProgObserverFactoryImpl.");
+        logger.debug("Constructing ProgObserverFactoryImpl.");
     }
 
     public ProgObserver getInstance() {

@@ -12,7 +12,7 @@ public class FileLoaderImpl implements FileLoader {
     private static final Logger logger = LogManager.getLogger(FileLoaderImpl.class);
 
     public FileLoaderImpl() {
-        logger.info("Constructing FileLoaderImpl.");
+        logger.debug("Constructing FileLoaderImpl.");
     }
 
     public int[] loadFile(File file, ProgObserver observer) {

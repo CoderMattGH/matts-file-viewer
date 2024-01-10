@@ -18,7 +18,7 @@ public class DataViewerImpl implements DataViewer {
     private GUI gui;
 
     public DataViewerImpl() {
-        logger.info("Constructing DataViewerImpl.");
+        logger.debug("Constructing DataViewerImpl.");
     }
 
     public void setGUI(GUI gui) {
@@ -27,6 +27,13 @@ public class DataViewerImpl implements DataViewer {
 
     public void displayData(int[] data, ProgObserver observer, Enum<DataType> type,
             int startByteIndex, int endByteIndex) {
+        if (gui == null) {
+            logger.error("GUI dependency cannot be null.  Run setGUI(GUI gui).");
+            observer.setIsFinished(true);
+
+            return;
+        }
+
         if (data == null) {
             logger.error("Data cannot be null. Returning.");
             observer.setIsFinished(true);
@@ -133,7 +140,7 @@ public class DataViewerImpl implements DataViewer {
         getTypeOutput(type, str, dataByte);
 
         // Append chars in chunks
-        if (count % APPEND_CHUNK_SIZE == 0) {
+        if (count % APPEND_CHUNK_SIZE == 0 && count != 0) {
             double percentage = ((double)count / dataSize) * 100;
             observer.setPercentage(percentage);
 

@@ -39,7 +39,7 @@ public class GUI extends JFrame {
 
     public GUI(FileLoader fileLoader, DataViewer dataViewer,
             ProgObserverFactory progObserverFactory, ProgressBarFactory progressBarFactory) {
-        logger.info("Constructing GUI.");
+        logger.debug("Constructing GUI.");
 
         // Dependencies.
         this.fileLoader = fileLoader;
