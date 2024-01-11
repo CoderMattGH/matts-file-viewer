@@ -1,6 +1,9 @@
 package com.fileviewer.gui;
 
 import com.fileviewer.controller.Controller;
+import com.fileviewer.observer.ProgObserver;
+import com.fileviewer.observer.ProgObserverFactory;
+import com.fileviewer.observer.ProgObserverImpl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -12,6 +15,7 @@ public class GUI extends JFrame {
     private static final Logger logger = LogManager.getLogger(GUI.class);
 
     private final Controller controller;
+    private final ProgObserverFactory progObserverFactory;
 
     private JTextArea textArea;
     private JScrollPane scrollableTextArea;
@@ -21,11 +25,12 @@ public class GUI extends JFrame {
     private final JLabel fileSizeLabel;
     private final JLabel fileNameLabel;
 
-    public GUI(Controller controller) {
+    public GUI(Controller controller, ProgObserverFactory progObserverFactory) {
         logger.debug("Constructing GUI.");
 
         // Dependencies.
         this.controller = controller;
+        this.progObserverFactory = progObserverFactory;
 
         this.setTitle("File Viewer v0.1");
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -42,59 +47,70 @@ public class GUI extends JFrame {
         btnContainer.setLayout(new GridLayout(2, 5));
 
         JButton byteBtn = new JButton("BYTE VALUES");
-        byteBtn.addActionListener(e -> {
-                new Thread(() -> controller.changeViewType(DataType.Bytes)).start();
-            });
+        byteBtn.addActionListener(e -> changeViewType(DataType.Bytes));
 
         JButton charBtn = new JButton("CHAR VALUES");
-        charBtn.addActionListener(e -> {
-                new Thread(() -> controller.changeViewType(DataType.Characters)).start();
-            });
+        charBtn.addActionListener(e -> changeViewType(DataType.Characters));
 
         JButton hexBtn = new JButton("HEX VALUES");
-        hexBtn.addActionListener(e -> {
-                new Thread(() -> controller.changeViewType(DataType.Hex)).start();
-            });
+        hexBtn.addActionListener(e -> changeViewType(DataType.Hex));
 
         JButton UTF8Btn = new JButton("UTF-8 VALUES");
-        UTF8Btn.addActionListener(e -> {
-                new Thread(() -> controller.changeViewType(DataType.UTF8Characters)).start();
-            });
+        UTF8Btn.addActionListener(e -> changeViewType(DataType.UTF8Characters));
 
         JButton UTF8ByteBtn = new JButton("UTF-8 CODES");
-        UTF8ByteBtn.addActionListener(e -> {
-                new Thread(() -> controller.changeViewType(DataType.UTF8Bytes)).start();
-            });
+        UTF8ByteBtn.addActionListener(e -> changeViewType(DataType.UTF8Bytes));
 
         JButton UTF16Btn = new JButton("UTF-16 VALUES");
-        UTF16Btn.addActionListener(e -> {
-                new Thread(() -> controller.changeViewType(DataType.UTF16Characters)).start();
-            });
+        UTF16Btn.addActionListener(e -> changeViewType(DataType.UTF16Characters));
 
         JButton UTF16ByteBtn = new JButton("UTF-16 CODES");
-        UTF16ByteBtn.addActionListener(e -> {
-                new Thread(() -> controller.changeViewType(DataType.UTF16Bytes)).start();
-            });
+        UTF16ByteBtn.addActionListener(e -> changeViewType(DataType.UTF16Bytes));
 
         JButton nxtPageBtn = new JButton("NEXT PAGE");
         nxtPageBtn.addActionListener(e -> {
-                new Thread(controller::showNextPage).start();
-            });
+                new Thread(() -> {
+                        ProgObserver observer = progObserverFactory.getInstance();
+                        controller.showNextPage(observer);
+
+                        observer.setIsFinished(true);
+                    }).start();
+                });
 
         JButton prevPageBtn = new JButton("PREV. PAGE");
         prevPageBtn.addActionListener(e -> {
-                new Thread(controller::showPrevPage).start();
-            });
+                new Thread(() -> {
+                        ProgObserver observer = progObserverFactory.getInstance();
+                        controller.showPrevPage(observer);
+
+                        observer.setIsFinished(true);
+                    }).start();
+                });
 
         JButton firstPageBtn = new JButton("FIRST PAGE");
         firstPageBtn.addActionListener(e -> {
-                new Thread(controller::showFirstPage).start();
-            });
+                new Thread(() -> {
+                        ProgObserver observer = progObserverFactory.getInstance();
+                        controller.showFirstPage(observer);
+
+                        observer.setIsFinished(true);
+                    }).start();
+                });
 
         JButton loadBtn = new JButton("LOAD FILE");
         loadBtn.addActionListener(e -> {
-                new Thread(controller::loadFile).start();
-            });
+                new Thread(() -> {
+                        ProgObserver observer = progObserverFactory.getInstance();
+                        String data = controller.loadFile(new JFileChooser(), observer);
+
+                        if (data != null) {
+                            resetTextOutput();
+                            appendTextOutput(data);
+                        }
+
+                        observer.setIsFinished(true);
+                    }).start();
+                });
 
         btnContainer.add(loadBtn);
 
@@ -189,5 +205,20 @@ public class GUI extends JFrame {
     public void displayMessage(String message) {
         JOptionPane.showMessageDialog(this, message, "Information",
                 JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private void changeViewType(DataType type) {
+        Thread thread = new Thread(() -> {
+                ProgObserver observer =progObserverFactory.getInstance();
+                String data = controller.changeViewType(type, observer);
+
+                if (data != null) {
+                    resetTextOutput();
+                    appendTextOutput(data);
+                }
+
+                observer.setIsFinished(true);
+            });
+        thread.start();
     }
 }

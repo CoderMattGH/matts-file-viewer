@@ -49,7 +49,7 @@ public class MainApp {
         Controller controller = new ControllerImpl(fileLoader, model, dataViewer,
                 progObserverFactory, progressBarFactory);
 
-        GUI gui = new GUI(controller);
+        GUI gui = new GUI(controller, progObserverFactory);
         controller.setGUI(gui);
     }
 }

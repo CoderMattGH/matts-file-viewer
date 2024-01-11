@@ -13,6 +13,7 @@ import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.io.File;
+import java.util.Observer;
 
 import static com.fileviewer.dataprocessing.DataViewer.DataType;
 
@@ -42,13 +43,10 @@ public class ControllerImpl implements Controller {
         this.gui = gui;
     }
 
-    public synchronized void loadFile() {
-        final JFileChooser fileChooser = new JFileChooser();
-
+    public synchronized String loadFile(final JFileChooser fileChooser, ProgObserver observer) {
         int returnVal = fileChooser.showOpenDialog(gui);
 
         if (returnVal == JFileChooser.APPROVE_OPTION) {
-            ProgObserver observer = progObserverFactory.getInstance();
             showProgressBar(observer);
 
             File file = fileChooser.getSelectedFile();
@@ -62,7 +60,7 @@ public class ControllerImpl implements Controller {
                 gui.displayError("File size was too large.");
                 observer.setIsFinished(true);
 
-                return;
+                return null;
             }
 
             model.setLastFileLoadedData(tempFileData);
@@ -76,15 +74,16 @@ public class ControllerImpl implements Controller {
                     model.getCurrentType(), model.getStartByteIndex(),
                     model.getStartByteIndex() + model.getMaxBytesPerPage());
 
-            resetTextOutput();
-            appendTextOutput(dataString);
-
-            observer.setIsFinished(true);
+            return dataString;
         }
+
+        return null;
     }
 
-    public synchronized void displayData(DataType type) {
-        ProgObserver observer = progObserverFactory.getInstance();
+    /**
+     * Can return null if there was no data.
+     */
+    public synchronized String displayData(DataType type, ProgObserver observer) {
         showProgressBar(observer);
 
         resetTextOutput();
@@ -93,12 +92,7 @@ public class ControllerImpl implements Controller {
                 model.getCurrentType(), model.getStartByteIndex(),
                 model.getStartByteIndex() + model.getMaxBytesPerPage());
 
-        if (string == null)
-            logger.error("An error occurred whilst getting the display data.");
-        else
-            appendTextOutput(string);
-
-        observer.setIsFinished(true);
+        return string;
     }
 
     public void showProgressBar(ProgObserver observer) {
@@ -119,15 +113,17 @@ public class ControllerImpl implements Controller {
         thread.start();
     }
 
-    public synchronized void changeViewType(DataType type) {
+    public synchronized String changeViewType(DataType type, ProgObserver observer) {
         model.setStartByteIndex(0);
         gui.setPageLabel(model.getCurrentPage());
 
         model.setCurrentType(type);
-        displayData(model.getCurrentType());
+        String data = displayData(model.getCurrentType(), observer);
+
+        return data;
     }
 
-    public synchronized void showNextPage() {
+    public synchronized void showNextPage(ProgObserver observer) {
         logger.debug("Fetching next page.");
 
         if (model.getLastFileLoadedData() == null)
@@ -143,10 +139,10 @@ public class ControllerImpl implements Controller {
         model.setStartByteIndex(tempStartIndex);
         gui.setPageLabel(model.getCurrentPage());
 
-        displayData(model.getCurrentType());
+        displayData(model.getCurrentType(), observer);
     }
 
-    public synchronized void showPrevPage() {
+    public synchronized void showPrevPage(ProgObserver observer) {
         logger.debug("Fetching previous page.");
 
         int result = model.getStartByteIndex() - model.getMaxBytesPerPage();
@@ -158,15 +154,15 @@ public class ControllerImpl implements Controller {
 
         gui.setPageLabel(model.getCurrentPage());
 
-        displayData(model.getCurrentType());
+        displayData(model.getCurrentType(), observer);
     }
 
-    public synchronized void showFirstPage() {
+    public synchronized void showFirstPage(ProgObserver observer) {
         logger.debug("Fetching first page.");
 
         model.setStartByteIndex(0);
 
-        displayData(model.getCurrentType());
+        displayData(model.getCurrentType(), observer);
     }
 
     public synchronized void resetTextOutput() {
