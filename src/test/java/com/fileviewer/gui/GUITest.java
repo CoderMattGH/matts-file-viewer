@@ -9,6 +9,4 @@ public class GUITest {
     public GUITest() {
         logger.debug("Constructing GUITest");
     }
-
-
 }

@@ -19,38 +19,38 @@ public class ModelImpl implements Model {
         logger.debug("Constructing ModelImpl");
     }
 
-    public void setLastFileLoadedData(int[] lastFileLoadedData) {
+    public synchronized void setLastFileLoadedData(int[] lastFileLoadedData) {
         this.lastFileLoadedData = lastFileLoadedData;
     }
 
-    public int[] getLastFileLoadedData() {
+    public synchronized int[] getLastFileLoadedData() {
         return lastFileLoadedData;
     }
 
-    public void setStartByteIndex(int startByteIndex) {
+    public synchronized void setStartByteIndex(int startByteIndex) {
         this.startByteIndex = startByteIndex;
     }
 
-    public int getStartByteIndex() {
+    public synchronized int getStartByteIndex() {
         return startByteIndex;
     }
 
-    public int getCurrentPage() {
+    public synchronized int getCurrentPage() {
         if (startByteIndex == 0)
             return 1;
         else
             return (startByteIndex / MAX_BYTES_PER_PAGE) + 1;
     }
 
-    public DataType getCurrentType() {
+    public synchronized DataType getCurrentType() {
         return this.currentType;
     }
 
-    public void setCurrentType(DataType currentType) {
+    public synchronized void setCurrentType(DataType currentType) {
         this.currentType = currentType;
     }
 
-    public int getMaxBytesPerPage() {
+    public synchronized int getMaxBytesPerPage() {
         return MAX_BYTES_PER_PAGE;
     }
 }

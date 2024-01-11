@@ -1,18 +1,11 @@
 package com.fileviewer.gui;
 
 import com.fileviewer.controller.Controller;
-import com.fileviewer.dataprocessing.DataViewer;
-import com.fileviewer.dataprocessing.FileLoader;
-import com.fileviewer.gui.progressbar.ProgressBar;
-import com.fileviewer.gui.progressbar.ProgressBarFactory;
-import com.fileviewer.observer.ProgObserver;
-import com.fileviewer.observer.ProgObserverFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.*;
 import static com.fileviewer.dataprocessing.DataViewer.DataType;
 
 public class GUI extends JFrame {

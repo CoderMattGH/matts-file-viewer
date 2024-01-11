@@ -38,11 +38,11 @@ public class ControllerImpl implements Controller {
         this.progressBarFactory = progressBarFactory;
     }
 
-    public void setGUI(GUI gui) {
+    public synchronized void setGUI(GUI gui) {
         this.gui = gui;
     }
 
-    public void loadFile() {
+    public synchronized void loadFile() {
         final JFileChooser fileChooser = new JFileChooser();
 
         int returnVal = fileChooser.showOpenDialog(gui);
@@ -83,7 +83,7 @@ public class ControllerImpl implements Controller {
         }
     }
 
-    public void displayData(DataType type) {
+    public synchronized void displayData(DataType type) {
         ProgObserver observer = progObserverFactory.getInstance();
         showProgressBar(observer);
 
@@ -119,7 +119,7 @@ public class ControllerImpl implements Controller {
         thread.start();
     }
 
-    public void changeViewType(DataType type) {
+    public synchronized void changeViewType(DataType type) {
         model.setStartByteIndex(0);
         gui.setPageLabel(model.getCurrentPage());
 
@@ -127,7 +127,7 @@ public class ControllerImpl implements Controller {
         displayData(model.getCurrentType());
     }
 
-    public void showNextPage() {
+    public synchronized void showNextPage() {
         logger.debug("Fetching next page.");
 
         if (model.getLastFileLoadedData() == null)
@@ -146,7 +146,7 @@ public class ControllerImpl implements Controller {
         displayData(model.getCurrentType());
     }
 
-    public void showPrevPage() {
+    public synchronized void showPrevPage() {
         logger.debug("Fetching previous page.");
 
         int result = model.getStartByteIndex() - model.getMaxBytesPerPage();
@@ -161,7 +161,7 @@ public class ControllerImpl implements Controller {
         displayData(model.getCurrentType());
     }
 
-    public void showFirstPage() {
+    public synchronized void showFirstPage() {
         logger.debug("Fetching first page.");
 
         model.setStartByteIndex(0);
@@ -169,11 +169,11 @@ public class ControllerImpl implements Controller {
         displayData(model.getCurrentType());
     }
 
-    public void resetTextOutput() {
+    public synchronized void resetTextOutput() {
         gui.resetTextOutput();
     }
 
-    public void appendTextOutput(String string) {
+    public synchronized void appendTextOutput(String string) {
         gui.appendTextOutput(string);
     }
 }
