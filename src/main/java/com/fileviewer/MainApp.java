@@ -22,7 +22,7 @@ public class MainApp {
     private static final Logger logger = LogManager.getLogger(MainApp.class);
 
     public MainApp() {
-        logger.info("Constructing MainApp.");
+        logger.debug("Constructing MainApp.");
     }
 
     public static void main(String[] args) {
@@ -48,7 +48,6 @@ public class MainApp {
 
         Controller controller = new ControllerImpl(fileLoader, model, dataViewer,
                 progObserverFactory, progressBarFactory);
-        dataViewer.setController(controller);
 
         GUI gui = new GUI(controller);
         controller.setGUI(gui);

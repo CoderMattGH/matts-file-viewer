@@ -14,36 +14,25 @@ import java.nio.charset.StandardCharsets;
 public class DataViewerImpl implements DataViewer {
     private final static Logger logger = LogManager.getLogger(DataViewer.class);
 
-    private static final int APPEND_CHUNK_SIZE = 600;
-
-    private Controller controller = null;
+    private static final int CHUNK_SIZE = 600;
 
     public DataViewerImpl() {
         logger.debug("Constructing DataViewerImpl.");
     }
 
-    public void setController(Controller controller) {
-        this.controller = controller;
-    }
-
-    public void displayData(int[] data, ProgObserver observer, Enum<DataType> type,
+    /**
+     * Returns null if an error occurred or if there was no data to display.
+     */
+    public String fetchDisplayData(int[] data, ProgObserver observer, Enum<DataType> type,
             int startByteIndex, int endByteIndex) {
-        if (controller == null) {
-            logger.error("Controller dependency cannot be null.  Run setController().");
-            observer.setIsFinished(true);
-
-            return;
-        }
-
         if (data == null) {
             logger.error("Data cannot be null. Returning.");
             observer.setIsFinished(true);
 
-            return;
+            return null;
         }
 
         observer.setPercentage(0);
-        controller.resetTextOutput();
 
         StringBuilder str = new StringBuilder();
 
@@ -65,15 +54,12 @@ public class DataViewerImpl implements DataViewer {
             try {
                 while ((dataByte = reader.read()) != -1) {
                     if (observer.isCancelled()) {
-                        return;
+                        return null;
                     }
 
                     processChunk(str, type, dataByte, count, observer, bytes.length);
                     count++;
                 }
-
-                if (!str.isEmpty())
-                    controller.appendTextOutput(str.toString());
             } catch(IOException e) {
                 e.printStackTrace();
             } finally {
@@ -86,7 +72,7 @@ public class DataViewerImpl implements DataViewer {
         } else {
             if (startByteIndex >= data.length) {
                 logger.error("Start Index cannot be bigger than data size. Returning.");
-                return;
+                return null;
             }
 
             int endIndex;
@@ -99,18 +85,17 @@ public class DataViewerImpl implements DataViewer {
                 int readByte = data[i];
 
                 if (observer.isCancelled()) {
-                    return;
+                    return null;
                 }
 
                 processChunk(str, type, readByte, count, observer, endIndex - startByteIndex);
                 count++;
             }
-
-            if (!str.isEmpty())
-                controller.appendTextOutput(str.toString());
         }
 
         observer.setPercentage(100);
+
+        return str.toString();
     }
 
     // Here endIndex is inclusive.
@@ -140,14 +125,9 @@ public class DataViewerImpl implements DataViewer {
             ProgObserver observer, int dataSize) {
         getTypeOutput(type, str, dataByte);
 
-        // Append chars in chunks
-        if (count % APPEND_CHUNK_SIZE == 0 && count != 0) {
+        if (count % CHUNK_SIZE == 0 && count != 0) {
             double percentage = ((double)count / dataSize) * 100;
             observer.setPercentage(percentage);
-
-            controller.appendTextOutput(str.toString());
-
-            str.setLength(0);
         }
 
         if (count % 100 == 0) {

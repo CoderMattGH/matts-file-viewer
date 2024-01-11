@@ -42,7 +42,6 @@ public class ControllerImpl implements Controller {
         this.gui = gui;
     }
 
-    // THREADED?
     public void loadFile() {
         final JFileChooser fileChooser = new JFileChooser();
 
@@ -73,9 +72,13 @@ public class ControllerImpl implements Controller {
             gui.setFileSizeLabel(model.getLastFileLoadedData().length);
             gui.setFileNameLabel(file.getName());
 
-            dataViewer.displayData(model.getLastFileLoadedData(), observer, model.getCurrentType(),
-                    model.getStartByteIndex(),
+            String dataString = dataViewer.fetchDisplayData(model.getLastFileLoadedData(), observer,
+                    model.getCurrentType(), model.getStartByteIndex(),
                     model.getStartByteIndex() + model.getMaxBytesPerPage());
+
+            resetTextOutput();
+            appendTextOutput(dataString);
+
             observer.setIsFinished(true);
         }
     }
@@ -84,9 +87,16 @@ public class ControllerImpl implements Controller {
         ProgObserver observer = progObserverFactory.getInstance();
         showProgressBar(observer);
 
-        dataViewer.displayData(model.getLastFileLoadedData(), observer, model.getCurrentType(),
-                model.getStartByteIndex(),
+        resetTextOutput();
+
+        String string = dataViewer.fetchDisplayData(model.getLastFileLoadedData(), observer,
+                model.getCurrentType(), model.getStartByteIndex(),
                 model.getStartByteIndex() + model.getMaxBytesPerPage());
+
+        if (string == null)
+            logger.error("An error occurred whilst getting the display data.");
+        else
+            appendTextOutput(string);
 
         observer.setIsFinished(true);
     }
@@ -109,7 +119,6 @@ public class ControllerImpl implements Controller {
         thread.start();
     }
 
-    // Threaded?
     public void changeViewType(DataType type) {
         model.setStartByteIndex(0);
         gui.setPageLabel(model.getCurrentPage());

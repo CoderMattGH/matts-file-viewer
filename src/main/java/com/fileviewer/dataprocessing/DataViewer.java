@@ -20,8 +20,6 @@ public interface DataViewer {
      *
      *  Note: Start index is inclusive, and endIndex is exclusive.
      */
-    void displayData(int[] data, ProgObserver observer, Enum<DataType> type, int startByteIndex,
+    String fetchDisplayData(int[] data, ProgObserver observer, Enum<DataType> type, int startByteIndex,
             int endByteIndex);
-
-    void setController(Controller controller);
 }
