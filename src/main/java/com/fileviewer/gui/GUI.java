@@ -96,6 +96,8 @@ public class GUI extends JFrame {
                 new Thread(controller::loadFile).start();
             });
 
+        btnContainer.add(loadBtn);
+
         btnContainer.add(byteBtn);
         btnContainer.add(charBtn);
         btnContainer.add(hexBtn);
@@ -103,8 +105,6 @@ public class GUI extends JFrame {
         btnContainer.add(UTF8ByteBtn);
         btnContainer.add(UTF16Btn);
         btnContainer.add(UTF16ByteBtn);
-
-        btnContainer.add(loadBtn);
 
         Container pageControlsContainer = new Container();
         pageControlsContainer.setLayout(new GridLayout(1, 3));
