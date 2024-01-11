@@ -1,5 +1,6 @@
 package com.fileviewer.gui;
 
+import com.fileviewer.controller.Controller;
 import com.fileviewer.dataprocessing.DataViewer;
 import com.fileviewer.dataprocessing.FileLoader;
 import com.fileviewer.gui.progressbar.ProgressBar;
@@ -17,17 +18,7 @@ import static com.fileviewer.dataprocessing.DataViewer.DataType;
 public class GUI extends JFrame {
     private static final Logger logger = LogManager.getLogger(GUI.class);
 
-    private static final int MAX_BYTES_PER_PAGE = 10000;
-
-    private int startByteIndex = 0;      // Current start index for reading bytes.
-    private DataType currentType = DataType.Characters;
-
-    private final FileLoader fileLoader;
-    private final DataViewer dataViewer;
-    private final ProgObserverFactory progObserverFactory;
-    private final ProgressBarFactory progressBarFactory;
-
-    private int[] lastFileLoadedData;
+    private final Controller controller;
 
     private JTextArea textArea;
     private JScrollPane scrollableTextArea;
@@ -37,16 +28,11 @@ public class GUI extends JFrame {
     private final JLabel fileSizeLabel;
     private final JLabel fileNameLabel;
 
-    public GUI(FileLoader fileLoader, DataViewer dataViewer,
-            ProgObserverFactory progObserverFactory, ProgressBarFactory progressBarFactory) {
+    public GUI(Controller controller) {
         logger.debug("Constructing GUI.");
 
         // Dependencies.
-        this.fileLoader = fileLoader;
-        this.dataViewer = dataViewer;
-        dataViewer.setGUI(this);
-        this.progObserverFactory = progObserverFactory;
-        this.progressBarFactory = progressBarFactory;
+        this.controller = controller;
 
         this.setTitle("File Viewer v0.1");
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -63,37 +49,59 @@ public class GUI extends JFrame {
         btnContainer.setLayout(new GridLayout(2, 5));
 
         JButton byteBtn = new JButton("BYTE VALUES");
-        byteBtn.addActionListener(e -> changeViewType(DataType.Bytes));
+        byteBtn.addActionListener(e -> {
+                new Thread(() -> controller.changeViewType(DataType.Bytes)).start();
+            });
 
         JButton charBtn = new JButton("CHAR VALUES");
-        charBtn.addActionListener(e -> changeViewType(DataType.Characters));
+        charBtn.addActionListener(e -> {
+                new Thread(() -> controller.changeViewType(DataType.Characters)).start();
+            });
 
         JButton hexBtn = new JButton("HEX VALUES");
-        hexBtn.addActionListener(e -> changeViewType(DataType.Hex));
+        hexBtn.addActionListener(e -> {
+                new Thread(() -> controller.changeViewType(DataType.Hex)).start();
+            });
 
         JButton UTF8Btn = new JButton("UTF-8 VALUES");
-        UTF8Btn.addActionListener(e -> changeViewType(DataType.UTF8Characters));
+        UTF8Btn.addActionListener(e -> {
+                new Thread(() -> controller.changeViewType(DataType.UTF8Characters)).start();
+            });
 
         JButton UTF8ByteBtn = new JButton("UTF-8 CODES");
-        UTF8ByteBtn.addActionListener(e -> changeViewType(DataType.UTF8Bytes));
+        UTF8ByteBtn.addActionListener(e -> {
+                new Thread(() -> controller.changeViewType(DataType.UTF8Bytes)).start();
+            });
 
         JButton UTF16Btn = new JButton("UTF-16 VALUES");
-        UTF16Btn.addActionListener(e -> changeViewType(DataType.UTF16Characters));
+        UTF16Btn.addActionListener(e -> {
+                new Thread(() -> controller.changeViewType(DataType.UTF16Characters)).start();
+            });
 
         JButton UTF16ByteBtn = new JButton("UTF-16 CODES");
-        UTF16ByteBtn.addActionListener(e -> changeViewType(DataType.UTF16Bytes));
+        UTF16ByteBtn.addActionListener(e -> {
+                new Thread(() -> controller.changeViewType(DataType.UTF16Bytes)).start();
+            });
 
         JButton nxtPageBtn = new JButton("NEXT PAGE");
-        nxtPageBtn.addActionListener(e -> showNextPage());
+        nxtPageBtn.addActionListener(e -> {
+                new Thread(controller::showNextPage).start();
+            });
 
         JButton prevPageBtn = new JButton("PREV. PAGE");
-        prevPageBtn.addActionListener(e -> showPrevPage());
+        prevPageBtn.addActionListener(e -> {
+                new Thread(controller::showPrevPage).start();
+            });
 
         JButton firstPageBtn = new JButton("FIRST PAGE");
-        firstPageBtn.addActionListener(e -> showFirstPage());
+        firstPageBtn.addActionListener(e -> {
+                new Thread(controller::showFirstPage).start();
+            });
 
         JButton loadBtn = new JButton("LOAD FILE");
-        loadBtn.addActionListener(e -> loadFile());
+        loadBtn.addActionListener(e -> {
+                new Thread(controller::loadFile).start();
+            });
 
         btnContainer.add(byteBtn);
         btnContainer.add(charBtn);
@@ -113,7 +121,7 @@ public class GUI extends JFrame {
         pageControlsContainer.add(nxtPageBtn);
 
         pageInfoLabel = new JLabel();
-        setPageLabel(getCurrentPage());
+        setPageLabel(1);
         pageInfoLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
         fileSizeLabel = new JLabel();
@@ -149,79 +157,6 @@ public class GUI extends JFrame {
         this.setVisible(true);
     }
 
-    private void loadFile() {
-        final JFileChooser fileChooser = new JFileChooser();
-
-        int returnVal = fileChooser.showOpenDialog(this);
-
-        // If file exists
-        if (returnVal == JFileChooser.APPROVE_OPTION) {
-            Thread thread = new Thread(() -> {
-                    ProgObserver observer = progObserverFactory.getInstance();
-                    showProgressBar(observer);
-
-                    File file = fileChooser.getSelectedFile();
-
-                    int[] tempFileData = fileLoader.loadFile(file, observer);
-
-                    observer.setPercentage(0);
-
-                    // If an error occurred or file was null then return.
-                    if (tempFileData == null) {
-                        displayError("File size was too large.");
-                        observer.setIsFinished(true);
-
-                        return;
-                    }
-
-                    lastFileLoadedData = tempFileData;
-
-                    startByteIndex = 0;
-
-                    setPageLabel(getCurrentPage());
-                    setFileSizeLabel(lastFileLoadedData.length);
-                    setFileNameLabel(file.getName());
-
-                    dataViewer.displayData(lastFileLoadedData, observer, currentType,
-                            startByteIndex, startByteIndex + MAX_BYTES_PER_PAGE);
-                    observer.setIsFinished(true);
-                });
-            thread.start();
-        }
-    }
-
-    private void displayData(DataType type) {
-        ProgObserver observer = progObserverFactory.getInstance();
-        showProgressBar(observer);
-
-        dataViewer.displayData(lastFileLoadedData, observer, currentType,
-                startByteIndex, startByteIndex + MAX_BYTES_PER_PAGE);
-
-        observer.setIsFinished(true);
-    }
-
-    /**
-     * Non-blocking method call.  Creates a thread to show a progress bar and then returns.
-     */
-    private void showProgressBar(ProgObserver observer) {
-        Thread thread = new Thread(() -> {
-                ProgressBar progressBar = progressBarFactory.getInstance(this ,observer);
-
-                while(!observer.isFinished()) {
-                    progressBar.setPercentage(observer.getPercentage());
-
-                    try {
-                        Thread.sleep(20);
-                    } catch (Exception ignored) {}
-                }
-
-                logger.info("Trying to destroy ProgressBar...");
-                progressBar.destroyProgressBar();
-            }
-        );
-        thread.start();
-    }
-
     public void resetTextOutput() {
         container.remove(scrollableTextArea);
 
@@ -241,98 +176,25 @@ public class GUI extends JFrame {
         textArea.append(text);
     }
 
-    private int getCurrentPage() {
-        if (startByteIndex == 0)
-            return 1;
-        else
-            return (startByteIndex / MAX_BYTES_PER_PAGE) + 1;
-    }
-
-    private void setPageLabel(int pageNumber) {
+    public void setPageLabel(int pageNumber) {
         pageInfoLabel.setText("Page number: " + pageNumber);
     }
 
-    private void setFileSizeLabel(int fileSize) {
+    public void setFileSizeLabel(int fileSize) {
         fileSizeLabel.setText("File size: " + fileSize + " bytes");
     }
 
-    private void setFileNameLabel(String fileName) {
+    public void setFileNameLabel(String fileName) {
         fileNameLabel.setText("Filename: " + fileName);
     }
 
-    private void displayError(String errorMessage) {
+    public void displayError(String errorMessage) {
         JOptionPane.showMessageDialog(this, errorMessage, "Error",
                 JOptionPane.ERROR_MESSAGE);
     }
 
-    private void displayMessage(String message) {
+    public void displayMessage(String message) {
         JOptionPane.showMessageDialog(this, message, "Information",
                 JOptionPane.INFORMATION_MESSAGE);
-    }
-
-    private void changeViewType(DataType type) {
-        Thread thread = new Thread(() -> {
-                startByteIndex = 0;
-                setPageLabel(getCurrentPage());
-
-                currentType = type;
-                displayData(currentType);
-            });
-        thread.start();
-    }
-
-    private void showNextPage() {
-        logger.info("Fetching next page.");
-
-        if (lastFileLoadedData == null)
-            return;
-
-        int tempStartIndex = startByteIndex + MAX_BYTES_PER_PAGE;
-
-        if (tempStartIndex >= lastFileLoadedData.length) {
-            displayMessage("No more data.");
-
-            return;
-        }
-
-        startByteIndex = tempStartIndex;
-
-        setPageLabel(getCurrentPage());
-
-        Thread thread = new Thread(() -> {
-            displayData(currentType);
-        });
-        thread.start();
-    }
-
-    private void showPrevPage() {
-        logger.info("Fetching previous page.");
-
-        int result = startByteIndex - MAX_BYTES_PER_PAGE;
-
-        if (result < 0)
-            startByteIndex = 0;
-        else
-            startByteIndex = result;
-
-        setPageLabel(getCurrentPage());
-
-        Thread thread = new Thread(() -> {
-            displayData(currentType);
-        });
-        thread.start();
-    }
-
-    private void showFirstPage() {
-        logger.info("Fetching first page.");
-
-        startByteIndex = 0;
-
-        setPageLabel(getCurrentPage());
-
-        Thread thread = new Thread(() -> {
-            displayData(currentType);
-        });
-        thread.start();
     }
 }

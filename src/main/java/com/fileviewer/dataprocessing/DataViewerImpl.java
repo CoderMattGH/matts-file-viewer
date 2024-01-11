@@ -1,5 +1,6 @@
 package com.fileviewer.dataprocessing;
 
+import com.fileviewer.controller.Controller;
 import com.fileviewer.gui.GUI;
 import com.fileviewer.observer.ProgObserver;
 import org.apache.logging.log4j.LogManager;
@@ -15,20 +16,20 @@ public class DataViewerImpl implements DataViewer {
 
     private static final int APPEND_CHUNK_SIZE = 600;
 
-    private GUI gui;
+    private Controller controller = null;
 
     public DataViewerImpl() {
         logger.debug("Constructing DataViewerImpl.");
     }
 
-    public void setGUI(GUI gui) {
-        this.gui = gui;
+    public void setController(Controller controller) {
+        this.controller = controller;
     }
 
     public void displayData(int[] data, ProgObserver observer, Enum<DataType> type,
             int startByteIndex, int endByteIndex) {
-        if (gui == null) {
-            logger.error("GUI dependency cannot be null.  Run setGUI(GUI gui).");
+        if (controller == null) {
+            logger.error("Controller dependency cannot be null.  Run setController().");
             observer.setIsFinished(true);
 
             return;
@@ -42,7 +43,7 @@ public class DataViewerImpl implements DataViewer {
         }
 
         observer.setPercentage(0);
-        gui.resetTextOutput();
+        controller.resetTextOutput();
 
         StringBuilder str = new StringBuilder();
 
@@ -72,7 +73,7 @@ public class DataViewerImpl implements DataViewer {
                 }
 
                 if (!str.isEmpty())
-                    gui.appendTextOutput(str.toString());
+                    controller.appendTextOutput(str.toString());
             } catch(IOException e) {
                 e.printStackTrace();
             } finally {
@@ -106,7 +107,7 @@ public class DataViewerImpl implements DataViewer {
             }
 
             if (!str.isEmpty())
-                gui.appendTextOutput(str.toString());
+                controller.appendTextOutput(str.toString());
         }
 
         observer.setPercentage(100);
@@ -144,7 +145,7 @@ public class DataViewerImpl implements DataViewer {
             double percentage = ((double)count / dataSize) * 100;
             observer.setPercentage(percentage);
 
-            gui.appendTextOutput(str.toString());
+            controller.appendTextOutput(str.toString());
 
             str.setLength(0);
         }

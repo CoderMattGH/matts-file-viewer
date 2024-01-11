@@ -1,5 +1,7 @@
 package com.fileviewer;
 
+import com.fileviewer.controller.Controller;
+import com.fileviewer.controller.ControllerImpl;
 import com.fileviewer.dataprocessing.DataViewer;
 import com.fileviewer.dataprocessing.DataViewerImpl;
 import com.fileviewer.dataprocessing.FileLoader;
@@ -7,6 +9,8 @@ import com.fileviewer.dataprocessing.FileLoaderImpl;
 import com.fileviewer.gui.GUI;
 import com.fileviewer.gui.progressbar.ProgressBarFactory;
 import com.fileviewer.gui.progressbar.ProgressBarFactoryImpl;
+import com.fileviewer.model.Model;
+import com.fileviewer.model.ModelImpl;
 import com.fileviewer.observer.ProgObserverFactory;
 import com.fileviewer.observer.ProgObserverFactoryImpl;
 import org.apache.logging.log4j.LogManager;
@@ -40,7 +44,13 @@ public class MainApp {
         DataViewer dataViewer = new DataViewerImpl();
         ProgObserverFactory progObserverFactory = new ProgObserverFactoryImpl();
         ProgressBarFactory progressBarFactory = new ProgressBarFactoryImpl();
+        Model model = new ModelImpl();
 
-        GUI gui = new GUI(fileLoader, dataViewer, progObserverFactory, progressBarFactory);
+        Controller controller = new ControllerImpl(fileLoader, model, dataViewer,
+                progObserverFactory, progressBarFactory);
+        dataViewer.setController(controller);
+
+        GUI gui = new GUI(controller);
+        controller.setGUI(gui);
     }
 }

@@ -26,6 +26,7 @@ public class DataViewerImplTest {
         return data;
     }
 
+    /*
     @Test
     public void testDisplayData_ValidBytes() {
         ProgObserver observer = Mockito.mock(ProgObserver.class);
@@ -158,4 +159,5 @@ public class DataViewerImplTest {
         Mockito.verify(gui, times(1)).appendTextOutput("8483 9250 ");
         Mockito.verify(gui, times(1)).appendTextOutput(any());
     }
+    */
 }

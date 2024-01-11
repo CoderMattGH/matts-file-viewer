@@ -1,5 +1,6 @@
 package com.fileviewer.dataprocessing;
 
+import com.fileviewer.controller.Controller;
 import com.fileviewer.gui.GUI;
 import com.fileviewer.observer.ProgObserver;
 
@@ -22,5 +23,5 @@ public interface DataViewer {
     void displayData(int[] data, ProgObserver observer, Enum<DataType> type, int startByteIndex,
             int endByteIndex);
 
-    void setGUI(GUI gui);
+    void setController(Controller controller);
 }
