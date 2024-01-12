@@ -2,6 +2,7 @@ package com.fileviewer.controller;
 
 import com.fileviewer.dataprocessing.DataViewer;
 import com.fileviewer.dataprocessing.FileLoader;
+import com.fileviewer.dto.LoadFileDTO;import com.fileviewer.dto.PageChangeDTO;
 import com.fileviewer.gui.GUI;
 import com.fileviewer.gui.progressbar.ProgressBar;
 import com.fileviewer.gui.progressbar.ProgressBarFactory;
@@ -43,7 +44,7 @@ public class ControllerImpl implements Controller {
         this.gui = gui;
     }
 
-    public synchronized String loadFile(final JFileChooser fileChooser, ProgObserver observer) {
+    public synchronized LoadFileDTO loadFile(final JFileChooser fileChooser, ProgObserver observer) {
         int returnVal = fileChooser.showOpenDialog(gui);
 
         if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -58,7 +59,6 @@ public class ControllerImpl implements Controller {
             // If an error occurred or file was null then return.
             if (tempFileData == null) {
                 gui.displayError("File size was too large.");
-                observer.setIsFinished(true);
 
                 return null;
             }
@@ -66,15 +66,21 @@ public class ControllerImpl implements Controller {
             model.setLastFileLoadedData(tempFileData);
             model.setStartByteIndex(0);
 
-            gui.setPageLabel(model.getCurrentPage());
-            gui.setFileSizeLabel(model.getLastFileLoadedData().length);
-            gui.setFileNameLabel(file.getName());
-
             String dataString = dataViewer.fetchDisplayData(model.getLastFileLoadedData(), observer,
                     model.getCurrentType(), model.getStartByteIndex(),
                     model.getStartByteIndex() + model.getMaxBytesPerPage());
 
-            return dataString;
+            if (dataString == null) {
+                return null;
+            }
+
+            LoadFileDTO dto = new LoadFileDTO();
+            dto.setCurrentPage(model.getCurrentPage());
+            dto.setFileSize(model.getLastFileLoadedData().length);
+            dto.setFilename(file.getName());
+            dto.setData(dataString);
+
+            return dto;
         }
 
         return null;
@@ -85,8 +91,6 @@ public class ControllerImpl implements Controller {
      */
     public synchronized String displayData(DataType type, ProgObserver observer) {
         showProgressBar(observer);
-
-        resetTextOutput();
 
         String string = dataViewer.fetchDisplayData(model.getLastFileLoadedData(), observer,
                 model.getCurrentType(), model.getStartByteIndex(),
@@ -123,26 +127,32 @@ public class ControllerImpl implements Controller {
         return data;
     }
 
-    public synchronized void showNextPage(ProgObserver observer) {
+    public synchronized PageChangeDTO showNextPage(ProgObserver observer) {
         logger.debug("Fetching next page.");
 
         if (model.getLastFileLoadedData() == null)
-            return;
+            return null;
 
         int tempStartIndex = model.getStartByteIndex() + model.getMaxBytesPerPage();
         if (tempStartIndex >= model.getLastFileLoadedData().length) {
             gui.displayMessage("No more data.");
 
-            return;
+            return null;
         }
 
         model.setStartByteIndex(tempStartIndex);
         gui.setPageLabel(model.getCurrentPage());
 
-        displayData(model.getCurrentType(), observer);
+        String data = displayData(model.getCurrentType(), observer);
+
+        PageChangeDTO pageChangeDTO = new PageChangeDTO();
+        pageChangeDTO.setData(data);
+        pageChangeDTO.setCurrentPage(model.getCurrentPage());
+
+        return pageChangeDTO;
     }
 
-    public synchronized void showPrevPage(ProgObserver observer) {
+    public synchronized PageChangeDTO showPrevPage(ProgObserver observer) {
         logger.debug("Fetching previous page.");
 
         int result = model.getStartByteIndex() - model.getMaxBytesPerPage();
@@ -152,24 +162,26 @@ public class ControllerImpl implements Controller {
         else
             model.setStartByteIndex(result);
 
-        gui.setPageLabel(model.getCurrentPage());
+        String data = displayData(model.getCurrentType(), observer);
 
-        displayData(model.getCurrentType(), observer);
+        PageChangeDTO pageChangeDTO = new PageChangeDTO();
+        pageChangeDTO.setData(data);
+        pageChangeDTO.setCurrentPage(model.getCurrentPage());
+
+        return pageChangeDTO;
     }
 
-    public synchronized void showFirstPage(ProgObserver observer) {
+    public synchronized PageChangeDTO showFirstPage(ProgObserver observer) {
         logger.debug("Fetching first page.");
 
         model.setStartByteIndex(0);
 
-        displayData(model.getCurrentType(), observer);
-    }
+        String data = displayData(model.getCurrentType(), observer);
 
-    public synchronized void resetTextOutput() {
-        gui.resetTextOutput();
-    }
+        PageChangeDTO pageChangeDTO = new PageChangeDTO();
+        pageChangeDTO.setData(data);
+        pageChangeDTO.setCurrentPage(model.getCurrentPage());
 
-    public synchronized void appendTextOutput(String string) {
-        gui.appendTextOutput(string);
+        return pageChangeDTO;
     }
 }

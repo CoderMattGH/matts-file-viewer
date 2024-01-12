@@ -1,6 +1,8 @@
 package com.fileviewer.gui;
 
 import com.fileviewer.controller.Controller;
+import com.fileviewer.dto.LoadFileDTO;import com.fileviewer.dto.PageChangeDTO;
+import com.fileviewer.model.Model;
 import com.fileviewer.observer.ProgObserver;
 import com.fileviewer.observer.ProgObserverFactory;
 import com.fileviewer.observer.ProgObserverImpl;
@@ -24,6 +26,12 @@ public class GUI extends JFrame {
     private final JLabel pageInfoLabel;
     private final JLabel fileSizeLabel;
     private final JLabel fileNameLabel;
+
+    public static enum Page {
+        FIRST_PAGE,
+        NEXT_PAGE,
+        PREV_PAGE
+    }
 
     public GUI(Controller controller, ProgObserverFactory progObserverFactory) {
         logger.debug("Constructing GUI.");
@@ -68,44 +76,23 @@ public class GUI extends JFrame {
         UTF16ByteBtn.addActionListener(e -> changeViewType(DataType.UTF16Bytes));
 
         JButton nxtPageBtn = new JButton("NEXT PAGE");
-        nxtPageBtn.addActionListener(e -> {
-                new Thread(() -> {
-                        ProgObserver observer = progObserverFactory.getInstance();
-                        controller.showNextPage(observer);
-
-                        observer.setIsFinished(true);
-                    }).start();
-                });
+        nxtPageBtn.addActionListener(e -> displayPage(Page.NEXT_PAGE));
 
         JButton prevPageBtn = new JButton("PREV. PAGE");
-        prevPageBtn.addActionListener(e -> {
-                new Thread(() -> {
-                        ProgObserver observer = progObserverFactory.getInstance();
-                        controller.showPrevPage(observer);
-
-                        observer.setIsFinished(true);
-                    }).start();
-                });
+        prevPageBtn.addActionListener(e -> displayPage(Page.PREV_PAGE));
 
         JButton firstPageBtn = new JButton("FIRST PAGE");
-        firstPageBtn.addActionListener(e -> {
-                new Thread(() -> {
-                        ProgObserver observer = progObserverFactory.getInstance();
-                        controller.showFirstPage(observer);
-
-                        observer.setIsFinished(true);
-                    }).start();
-                });
+        firstPageBtn.addActionListener(e -> displayPage(Page.FIRST_PAGE));
 
         JButton loadBtn = new JButton("LOAD FILE");
         loadBtn.addActionListener(e -> {
                 new Thread(() -> {
                         ProgObserver observer = progObserverFactory.getInstance();
-                        String data = controller.loadFile(new JFileChooser(), observer);
+                        LoadFileDTO dto = controller.loadFile(new JFileChooser(), observer);
 
-                        if (data != null) {
+                        if (dto != null) {
                             resetTextOutput();
-                            appendTextOutput(data);
+                            appendTextOutput(dto.getData());
                         }
 
                         observer.setIsFinished(true);
@@ -209,7 +196,7 @@ public class GUI extends JFrame {
 
     private void changeViewType(DataType type) {
         Thread thread = new Thread(() -> {
-                ProgObserver observer =progObserverFactory.getInstance();
+                ProgObserver observer = progObserverFactory.getInstance();
                 String data = controller.changeViewType(type, observer);
 
                 if (data != null) {
@@ -219,6 +206,31 @@ public class GUI extends JFrame {
 
                 observer.setIsFinished(true);
             });
+        thread.start();
+    }
+
+    private void displayPage(Enum<Page> page) {
+        Thread thread = new Thread(() -> {
+            ProgObserver observer = progObserverFactory.getInstance();
+
+            PageChangeDTO dto;
+            if (page == Page.FIRST_PAGE)
+                dto = controller.showFirstPage(observer);
+            else if (page == Page.NEXT_PAGE)
+                dto = controller.showNextPage(observer);
+            else if (page == Page.PREV_PAGE)
+                dto = controller.showPrevPage(observer);
+            else
+                dto = controller.showFirstPage(observer);
+
+            if (dto.getData() != null) {
+                resetTextOutput();
+                appendTextOutput(dto.getData());
+                setPageLabel(dto.getCurrentPage());
+            }
+
+            observer.setIsFinished(true);
+        });
         thread.start();
     }
 }

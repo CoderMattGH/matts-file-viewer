@@ -14,6 +14,7 @@ public class ModelImpl implements Model {
     private int[] lastFileLoadedData = null;
     private int startByteIndex = 0;
     private DataType currentType = DataType.Characters;
+    private String data = null;
 
     public ModelImpl() {
         logger.debug("Constructing ModelImpl");
@@ -52,5 +53,13 @@ public class ModelImpl implements Model {
 
     public synchronized int getMaxBytesPerPage() {
         return MAX_BYTES_PER_PAGE;
+    }
+
+    public synchronized String getData() {
+        return data;
+    }
+
+    public synchronized void setData(String data) {
+        this.data = data;
     }
 }
