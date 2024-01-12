@@ -1,7 +1,5 @@
 package com.fileviewer.dataprocessing;
 
-import com.fileviewer.controller.Controller;
-import com.fileviewer.gui.GUI;
 import com.fileviewer.observer.ProgObserver;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

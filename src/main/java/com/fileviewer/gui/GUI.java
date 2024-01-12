@@ -1,8 +1,11 @@
 package com.fileviewer.gui;
 
 import com.fileviewer.controller.Controller;
-import com.fileviewer.dto.ChangeViewDTO;import com.fileviewer.dto.LoadFileDTO;import com.fileviewer.dto.PageChangeDTO;
-import com.fileviewer.gui.progressbar.ProgressBar;import com.fileviewer.gui.progressbar.ProgressBarFactory;import com.fileviewer.model.Model;
+import com.fileviewer.dto.ChangeViewDTO;
+import com.fileviewer.dto.LoadFileDTO;
+import com.fileviewer.dto.PageChangeDTO;
+import com.fileviewer.gui.progressbar.ProgressBar;
+import com.fileviewer.gui.progressbar.ProgressBarFactory;import com.fileviewer.model.Model;
 import com.fileviewer.observer.ProgObserver;
 import com.fileviewer.observer.ProgObserverFactory;
 import org.apache.logging.log4j.LogManager;
