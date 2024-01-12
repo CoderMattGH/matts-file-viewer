@@ -4,6 +4,7 @@ import com.fileviewer.dataprocessing.DataViewer;
 import com.fileviewer.dataprocessing.FileLoader;
 import com.fileviewer.dto.ChangeViewDTO;
 import com.fileviewer.dto.LoadFileDTO;
+import com.fileviewer.dto.PageChangeDTO;
 import com.fileviewer.exception.FetchDataException;
 import com.fileviewer.model.Model;
 import com.fileviewer.model.ModelImpl;
@@ -29,9 +30,19 @@ public class ControllerImplTest {
         logger.debug("Constructing ControllerImplTest");
     }
 
+    private static String getResourcesDir() {
+        return "." + File.separator + "src" + File.separator + "test" + File.separator
+                + "resources" + File.separator;
+    }
+
     private static File getTestFile1() {
-        String path = "." + File.separator + "src" + File.separator + "test" + File.separator
-                + "resources" + File.separator + "testfile1.txt";
+        String path = getResourcesDir() + "testfile1.txt";
+
+        return new File(path);
+    }
+
+    private static File getTestFile2() {
+        String path = getResourcesDir() + "testfile2.txt";
 
         return new File(path);
     }
@@ -143,7 +154,42 @@ public class ControllerImplTest {
     }
 
     @Test
-    public void testShowNextPage() {
+    public void testShowNextPage_SmallFileOnePage() throws IOException {
+        File testFile = getTestFile1();
+        int[] testData = getTestFileData(testFile);
 
+        Model model = new ModelImpl();
+        model.setLastFileLoadedData(testData);
+        model.setCurrentType(DataViewer.DataType.Characters);
+        model.setStartByteIndex(0);
+        model.setLastFileLoadedData(testData);
+
+        Controller controller = new ControllerImpl(fileLoader, model, dataViewer);
+        PageChangeDTO dto = controller.showNextPage(observer);
+
+        assertEquals(true, dto.isErrorOccurred());
+        assertEquals(1, model.getCurrentPage());
+    }
+
+    @Test
+    public void testShowNextPage_BigFileMultiplePages() throws IOException {
+        File testFileLarge = getTestFile2();
+        int[] testData = getTestFileData(testFileLarge);
+
+        Model model = new ModelImpl();
+        model.setLastFileLoadedData(testData);
+        model.setCurrentType(DataViewer.DataType.Characters);
+        model.setStartByteIndex(0);
+        model.setLastFileLoadedData(testData);
+
+        String testString = "TEST STRING";
+        Mockito.when(dataViewer.fetchDisplayData(any(), any(), any(), anyInt(), anyInt()))
+                .thenReturn(testString);
+
+        Controller controller = new ControllerImpl(fileLoader, model, dataViewer);
+        PageChangeDTO dto = controller.showNextPage(observer);
+
+        assertEquals(false, dto.isErrorOccurred());
+        assertEquals(2, model.getCurrentPage());
     }
 }

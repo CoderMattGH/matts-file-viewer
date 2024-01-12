@@ -133,7 +133,6 @@ public class ControllerImpl implements Controller {
         if (observer == null)
             throw new NullPointerException("Parameters cannot be null");
 
-
         if (model.getLastFileLoadedData() == null) {
             PageChangeDTO dto = new PageChangeDTO();
             dto.setErrorOccurred(true);
