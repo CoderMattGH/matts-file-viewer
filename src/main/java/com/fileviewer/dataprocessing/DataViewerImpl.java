@@ -52,6 +52,8 @@ public class DataViewerImpl implements DataViewer {
             try {
                 while ((dataByte = reader.read()) != -1) {
                     if (observer.isCancelled()) {
+                        logger.debug("Cancelling fetching Data.");
+
                         return null;
                     }
 
@@ -83,6 +85,8 @@ public class DataViewerImpl implements DataViewer {
                 int readByte = data[i];
 
                 if (observer.isCancelled()) {
+                    logger.debug("Cancelling fetching Data.");
+
                     return null;
                 }
 

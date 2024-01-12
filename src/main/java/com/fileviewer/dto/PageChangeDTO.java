@@ -3,7 +3,7 @@ package com.fileviewer.dto;
 public class PageChangeDTO {
     private String data;
     private int currentPage;
-    private boolean errorOccurred;
+    private boolean errorOccurred = false;
     private String errorMessage;
 
     public void setData(String data) {

@@ -31,15 +31,27 @@ public class ControllerImpl implements Controller {
     }
 
     public synchronized LoadFileDTO loadFile(ProgObserver observer, File file) {
+        if (file == null || observer == null)
+            throw new NullPointerException("Parameters cannot be null.");
+
+        // Check file is not bigger than Integer.MAX_VALUE in bytes.
+        if (file.length() >= Integer.MAX_VALUE) {
+            LoadFileDTO dto = new LoadFileDTO();
+            dto.setErrorOccurred(true);
+            dto.setErrorMessage("File size was too large.");
+
+            return dto;
+        }
+
         int[] tempFileData = fileLoader.loadFile(file, observer);
 
         observer.setPercentage(0);
 
-        // If an error occurred or file was null then return.
+        // If file is null then return.
         if (tempFileData == null) {
             LoadFileDTO dto = new LoadFileDTO();
             dto.setErrorOccurred(true);
-            dto.setErrorMessage("File size was too large.");
+            dto.setErrorMessage("An unknown error occurred.");
 
             return dto;
         }
@@ -89,8 +101,10 @@ public class ControllerImpl implements Controller {
     }
 
     public synchronized ChangeViewDTO changeViewType(DataType type, ProgObserver observer) {
-        String data;
+        if (type == null || observer == null)
+            throw new NullPointerException("Parameters cannot be null");
 
+        String data;
         try {
             data = fetchData(type, observer, 0, model.getMaxBytesPerPage());
         } catch (Exception e) {
@@ -116,8 +130,17 @@ public class ControllerImpl implements Controller {
     public synchronized PageChangeDTO showNextPage(ProgObserver observer) {
         logger.debug("Fetching next page.");
 
-        if (model.getLastFileLoadedData() == null)
-            return null;
+        if (observer == null)
+            throw new NullPointerException("Parameters cannot be null");
+
+
+        if (model.getLastFileLoadedData() == null) {
+            PageChangeDTO dto = new PageChangeDTO();
+            dto.setErrorOccurred(true);
+            dto.setErrorMessage("No file was loaded.");
+
+            return dto;
+        }
 
         int tempStartIndex = model.getStartByteIndex() + model.getMaxBytesPerPage();
         if (tempStartIndex >= model.getLastFileLoadedData().length) {
@@ -154,6 +177,9 @@ public class ControllerImpl implements Controller {
     public synchronized PageChangeDTO showPrevPage(ProgObserver observer) {
         logger.debug("Fetching previous page.");
 
+        if (observer == null)
+            throw new NullPointerException("Parameters cannot be null");
+
         int startByteIndex = model.getStartByteIndex() - model.getMaxBytesPerPage();
 
         if (startByteIndex < 0)
@@ -184,6 +210,9 @@ public class ControllerImpl implements Controller {
 
     public synchronized PageChangeDTO showFirstPage(ProgObserver observer) {
         logger.debug("Fetching first page.");
+
+        if (observer == null)
+            throw new NullPointerException("Parameters cannot be null.");
 
         String data;
         try {
