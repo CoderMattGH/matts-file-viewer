@@ -59,37 +59,37 @@ public class GUI extends JFrame {
         Container btnContainer = new Container();
         btnContainer.setLayout(new GridLayout(2, 5));
 
-        JButton byteBtn = new JButton("BYTE VALUES");
+        JButton byteBtn = new JButton("Byte Values");
         byteBtn.addActionListener(e -> changeViewType(DataType.Bytes));
 
-        JButton charBtn = new JButton("CHAR VALUES");
+        JButton charBtn = new JButton("Char Values");
         charBtn.addActionListener(e -> changeViewType(DataType.Characters));
 
-        JButton hexBtn = new JButton("HEX VALUES");
+        JButton hexBtn = new JButton("Hex Values");
         hexBtn.addActionListener(e -> changeViewType(DataType.Hex));
 
-        JButton UTF8Btn = new JButton("UTF-8 VALUES");
+        JButton UTF8Btn = new JButton("UTF-8 Values");
         UTF8Btn.addActionListener(e -> changeViewType(DataType.UTF8Characters));
 
-        JButton UTF8ByteBtn = new JButton("UTF-8 CODES");
+        JButton UTF8ByteBtn = new JButton("UTF-8 Codes");
         UTF8ByteBtn.addActionListener(e -> changeViewType(DataType.UTF8Bytes));
 
-        JButton UTF16Btn = new JButton("UTF-16 VALUES");
+        JButton UTF16Btn = new JButton("UTF-16 Values");
         UTF16Btn.addActionListener(e -> changeViewType(DataType.UTF16Characters));
 
-        JButton UTF16ByteBtn = new JButton("UTF-16 CODES");
+        JButton UTF16ByteBtn = new JButton("UTF-16 Codes");
         UTF16ByteBtn.addActionListener(e -> changeViewType(DataType.UTF16Bytes));
 
-        JButton nxtPageBtn = new JButton("NEXT PAGE");
+        JButton nxtPageBtn = new JButton("Next Page   ▶");
         nxtPageBtn.addActionListener(e -> displayPage(Page.NEXT_PAGE));
 
-        JButton prevPageBtn = new JButton("PREV. PAGE");
+        JButton prevPageBtn = new JButton("◀   Prev. Page");
         prevPageBtn.addActionListener(e -> displayPage(Page.PREV_PAGE));
 
-        JButton firstPageBtn = new JButton("FIRST PAGE");
+        JButton firstPageBtn = new JButton("First Page");
         firstPageBtn.addActionListener(e -> displayPage(Page.FIRST_PAGE));
 
-        JButton loadBtn = new JButton("LOAD FILE");
+        JButton loadBtn = new JButton("Load File");
         loadBtn.addActionListener(e -> loadFile());
 
         btnContainer.add(loadBtn);
@@ -105,8 +105,8 @@ public class GUI extends JFrame {
         Container pageControlsContainer = new Container();
         pageControlsContainer.setLayout(new GridLayout(1, 3));
 
-        pageControlsContainer.add(firstPageBtn);
         pageControlsContainer.add(prevPageBtn);
+        pageControlsContainer.add(firstPageBtn);
         pageControlsContainer.add(nxtPageBtn);
 
         pageInfoLabel = new JLabel();
@@ -200,11 +200,14 @@ public class GUI extends JFrame {
                     resetTextOutput();
                     appendTextOutput(dto.getData());
                     setPageLabel(dto.getCurrentPage());
+
+                    observer.setIsFinished(true);
                 } else {
+                    observer.setIsFinished(true);
+
                     displayError(dto.getErrorMessage());
                 }
 
-                observer.setIsFinished(true);
                 this.setEnabled(true);
             });
         thread.start();
@@ -226,13 +229,20 @@ public class GUI extends JFrame {
 
                 if (!dto.isErrorOccurred()) {
                     resetTextOutput();
+
                     appendTextOutput(dto.getData());
+                    setFileNameLabel(dto.getFilename());
+                    setPageLabel(dto.getCurrentPage());
+                    setFileSizeLabel(dto.getFileSize());
+
+                    observer.setIsFinished(true);
                 } else {
+                    observer.setIsFinished(true);
+
                     displayError(dto.getErrorMessage());
                 }
             }
 
-            observer.setIsFinished(true);
             this.setEnabled(true);
         }).start();
     }
@@ -257,11 +267,14 @@ public class GUI extends JFrame {
                 resetTextOutput();
                 appendTextOutput(dto.getData());
                 setPageLabel(dto.getCurrentPage());
+
+                observer.setIsFinished(true);
             } else {
-                displayError(dto.getErrorMessage());
+                observer.setIsFinished(true);
+
+                displayMessage(dto.getErrorMessage());
             }
 
-            observer.setIsFinished(true);
             this.setEnabled(true);
         });
         thread.start();

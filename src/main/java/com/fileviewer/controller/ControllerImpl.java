@@ -44,20 +44,20 @@ public class ControllerImpl implements Controller {
             return dto;
         }
 
-        model.setLastFileLoadedData(tempFileData);
-        model.setStartByteIndex(0);
-
-        String dataString = dataViewer.fetchDisplayData(model.getLastFileLoadedData(), observer,
-                model.getCurrentType(), model.getStartByteIndex(),
-                model.getStartByteIndex() + model.getMaxBytesPerPage());
-
-        if (dataString == null) {
+        String dataString;
+        try {
+            dataString = fetchData(tempFileData, model.getCurrentType(), observer, 0,
+                    model.getMaxBytesPerPage());
+        } catch (Exception e) {
             LoadFileDTO dto = new LoadFileDTO();
             dto.setErrorOccurred(true);
             dto.setErrorMessage("Error fetching data string.");
 
             return dto;
         }
+
+        model.setLastFileLoadedData(tempFileData);
+        model.setStartByteIndex(0);
 
         LoadFileDTO dto = new LoadFileDTO();
         dto.setCurrentPage(model.getCurrentPage());
@@ -70,8 +70,16 @@ public class ControllerImpl implements Controller {
 
     private synchronized String fetchData(DataType type, ProgObserver observer,
             int startByteIndex, int endByteIndex) throws FetchDataException {
-        String dataString = dataViewer.fetchDisplayData(model.getLastFileLoadedData(), observer,
-                type, startByteIndex, endByteIndex);
+        String dataString = fetchData(model.getLastFileLoadedData(), type, observer,
+                startByteIndex, endByteIndex);
+
+        return dataString;
+    }
+
+    private synchronized String fetchData(int[] data, DataType type, ProgObserver observer,
+            int startByteIndex, int endByteIndex) throws FetchDataException {
+        String dataString = dataViewer.fetchDisplayData(data, observer, type, startByteIndex,
+                endByteIndex);
 
         if (dataString == null) {
             throw new FetchDataException();

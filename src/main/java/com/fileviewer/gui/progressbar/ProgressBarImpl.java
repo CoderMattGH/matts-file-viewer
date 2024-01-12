@@ -23,6 +23,10 @@ public class ProgressBarImpl extends JDialog implements ProgressBar {
         this.setSize(200, 100);
         this.setResizable(false);
         this.setAlwaysOnTop(true);
+
+        this.setLocationRelativeTo(parent);
+        this.setLocation(this.getX(), this.getY() - 80);
+
         this.setTitle("Processing...");
         this.setLayout(new BorderLayout());
 
