@@ -2,7 +2,9 @@ package com.fileviewer.controller;
 
 import com.fileviewer.dataprocessing.DataViewer;
 import com.fileviewer.dataprocessing.FileLoader;
-import com.fileviewer.dto.ChangeViewDTO;import com.fileviewer.dto.LoadFileDTO;import com.fileviewer.dto.PageChangeDTO;
+import com.fileviewer.dto.ChangeViewDTO;
+import com.fileviewer.dto.LoadFileDTO;
+import com.fileviewer.dto.PageChangeDTO;
 import com.fileviewer.exception.FetchDataException;
 import com.fileviewer.model.Model;
 import com.fileviewer.observer.ProgObserver;
