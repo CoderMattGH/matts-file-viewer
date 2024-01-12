@@ -27,7 +27,7 @@ public class GUI extends JFrame {
     private final JLabel fileSizeLabel;
     private final JLabel fileNameLabel;
 
-    public static enum Page {
+    private static enum Page {
         FIRST_PAGE,
         NEXT_PAGE,
         PREV_PAGE
