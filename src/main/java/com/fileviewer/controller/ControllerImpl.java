@@ -2,129 +2,105 @@ package com.fileviewer.controller;
 
 import com.fileviewer.dataprocessing.DataViewer;
 import com.fileviewer.dataprocessing.FileLoader;
-import com.fileviewer.dto.LoadFileDTO;import com.fileviewer.dto.PageChangeDTO;
-import com.fileviewer.gui.GUI;
-import com.fileviewer.gui.progressbar.ProgressBar;
-import com.fileviewer.gui.progressbar.ProgressBarFactory;
+import com.fileviewer.dto.ChangeViewDTO;import com.fileviewer.dto.LoadFileDTO;import com.fileviewer.dto.PageChangeDTO;
+import com.fileviewer.exception.FetchDataException;
 import com.fileviewer.model.Model;
 import com.fileviewer.observer.ProgObserver;
-import com.fileviewer.observer.ProgObserverFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import javax.swing.*;
 import java.io.File;
-import java.util.Observer;
 
 import static com.fileviewer.dataprocessing.DataViewer.DataType;
 
 public class ControllerImpl implements Controller {
     private static final Logger logger = LogManager.getLogger(ControllerImpl.class);
 
-    private final ProgObserverFactory progObserverFactory;
-    private final ProgressBarFactory progressBarFactory;
     private final FileLoader fileLoader;
     private final Model model;
     private final DataViewer dataViewer;
 
-    private GUI gui = null;
-
-    public ControllerImpl(FileLoader fileLoader, Model model, DataViewer dataViewer,
-            ProgObserverFactory progObserverFactory, ProgressBarFactory progressBarFactory) {
+    public ControllerImpl(FileLoader fileLoader, Model model, DataViewer dataViewer) {
         logger.debug("Constructing ControllerImpl");
 
         this.fileLoader = fileLoader;
         this.model = model;
         this.dataViewer = dataViewer;
-        this.progObserverFactory = progObserverFactory;
-        this.progressBarFactory = progressBarFactory;
     }
 
-    public synchronized void setGUI(GUI gui) {
-        this.gui = gui;
-    }
+    public synchronized LoadFileDTO loadFile(ProgObserver observer, File file) {
+        int[] tempFileData = fileLoader.loadFile(file, observer);
 
-    public synchronized LoadFileDTO loadFile(final JFileChooser fileChooser, ProgObserver observer) {
-        int returnVal = fileChooser.showOpenDialog(gui);
+        observer.setPercentage(0);
 
-        if (returnVal == JFileChooser.APPROVE_OPTION) {
-            showProgressBar(observer);
-
-            File file = fileChooser.getSelectedFile();
-
-            int[] tempFileData = fileLoader.loadFile(file, observer);
-
-            observer.setPercentage(0);
-
-            // If an error occurred or file was null then return.
-            if (tempFileData == null) {
-                gui.displayError("File size was too large.");
-
-                return null;
-            }
-
-            model.setLastFileLoadedData(tempFileData);
-            model.setStartByteIndex(0);
-
-            String dataString = dataViewer.fetchDisplayData(model.getLastFileLoadedData(), observer,
-                    model.getCurrentType(), model.getStartByteIndex(),
-                    model.getStartByteIndex() + model.getMaxBytesPerPage());
-
-            if (dataString == null) {
-                return null;
-            }
-
+        // If an error occurred or file was null then return.
+        if (tempFileData == null) {
             LoadFileDTO dto = new LoadFileDTO();
-            dto.setCurrentPage(model.getCurrentPage());
-            dto.setFileSize(model.getLastFileLoadedData().length);
-            dto.setFilename(file.getName());
-            dto.setData(dataString);
+            dto.setErrorOccurred(true);
+            dto.setErrorMessage("File size was too large.");
 
             return dto;
         }
 
-        return null;
-    }
+        model.setLastFileLoadedData(tempFileData);
+        model.setStartByteIndex(0);
 
-    /**
-     * Can return null if there was no data.
-     */
-    public synchronized String displayData(DataType type, ProgObserver observer) {
-        showProgressBar(observer);
-
-        String string = dataViewer.fetchDisplayData(model.getLastFileLoadedData(), observer,
+        String dataString = dataViewer.fetchDisplayData(model.getLastFileLoadedData(), observer,
                 model.getCurrentType(), model.getStartByteIndex(),
                 model.getStartByteIndex() + model.getMaxBytesPerPage());
 
-        return string;
+        if (dataString == null) {
+            LoadFileDTO dto = new LoadFileDTO();
+            dto.setErrorOccurred(true);
+            dto.setErrorMessage("Error fetching data string.");
+
+            return dto;
+        }
+
+        LoadFileDTO dto = new LoadFileDTO();
+        dto.setCurrentPage(model.getCurrentPage());
+        dto.setFileSize(model.getLastFileLoadedData().length);
+        dto.setFilename(file.getName());
+        dto.setData(dataString);
+
+        return dto;
     }
 
-    public void showProgressBar(ProgObserver observer) {
-        Thread thread = new Thread(() -> {
-                ProgressBar progressBar = progressBarFactory.getInstance(gui, observer);
+    private synchronized String fetchData(DataType type, ProgObserver observer,
+            int startByteIndex, int endByteIndex) throws FetchDataException {
+        String dataString = dataViewer.fetchDisplayData(model.getLastFileLoadedData(), observer,
+                type, startByteIndex, endByteIndex);
 
-                while(!observer.isFinished()) {
-                    progressBar.setPercentage(observer.getPercentage());
+        if (dataString == null) {
+            throw new FetchDataException();
+        }
 
-                    try {
-                        Thread.sleep(20);
-                    } catch (Exception ignored) {}
-                }
-
-                logger.debug("Trying to destroy ProgressBar...");
-                progressBar.destroyProgressBar();
-        });
-        thread.start();
+        return dataString;
     }
 
-    public synchronized String changeViewType(DataType type, ProgObserver observer) {
-        model.setStartByteIndex(0);
-        gui.setPageLabel(model.getCurrentPage());
+    public synchronized ChangeViewDTO changeViewType(DataType type, ProgObserver observer) {
+        String data;
+
+        try {
+            data = fetchData(type, observer, 0, model.getMaxBytesPerPage());
+        } catch (Exception e) {
+            logger.error("Error trying to fetch data string.");
+
+            ChangeViewDTO dto = new ChangeViewDTO();
+            dto.setErrorOccurred(true);
+            dto.setErrorMessage("Unable to fetch data.");
+
+            return dto;
+        }
 
         model.setCurrentType(type);
-        String data = displayData(model.getCurrentType(), observer);
+        model.setStartByteIndex(0);
 
-        return data;
+        ChangeViewDTO dto = new ChangeViewDTO();
+        dto.setCurrentPage(model.getCurrentPage());
+        dto.setData(data);
+
+        return dto;
     }
 
     public synchronized PageChangeDTO showNextPage(ProgObserver observer) {
@@ -135,15 +111,28 @@ public class ControllerImpl implements Controller {
 
         int tempStartIndex = model.getStartByteIndex() + model.getMaxBytesPerPage();
         if (tempStartIndex >= model.getLastFileLoadedData().length) {
-            gui.displayMessage("No more data.");
+            PageChangeDTO dto = new PageChangeDTO();
+            dto.setErrorOccurred(true);
+            dto.setErrorMessage("No more data.");
 
-            return null;
+            return dto;
+        }
+
+        String data;
+        try {
+            data = fetchData(model.getCurrentType(), observer, tempStartIndex,
+                    tempStartIndex + model.getMaxBytesPerPage());
+        } catch (Exception e) {
+            logger.error("Error trying to fetch data string.");
+
+            PageChangeDTO dto = new PageChangeDTO();
+            dto.setErrorOccurred(true);
+            dto.setErrorMessage("Unable to fetch data.");
+
+            return dto;
         }
 
         model.setStartByteIndex(tempStartIndex);
-        gui.setPageLabel(model.getCurrentPage());
-
-        String data = displayData(model.getCurrentType(), observer);
 
         PageChangeDTO pageChangeDTO = new PageChangeDTO();
         pageChangeDTO.setData(data);
@@ -155,14 +144,26 @@ public class ControllerImpl implements Controller {
     public synchronized PageChangeDTO showPrevPage(ProgObserver observer) {
         logger.debug("Fetching previous page.");
 
-        int result = model.getStartByteIndex() - model.getMaxBytesPerPage();
+        int startByteIndex = model.getStartByteIndex() - model.getMaxBytesPerPage();
 
-        if (result < 0)
-            model.setStartByteIndex(0);
-        else
-            model.setStartByteIndex(result);
+        if (startByteIndex < 0)
+            startByteIndex = 0;
 
-        String data = displayData(model.getCurrentType(), observer);
+        String data;
+        try {
+            data = fetchData(model.getCurrentType(), observer, startByteIndex,
+                    startByteIndex + model.getMaxBytesPerPage());
+        } catch (Exception e) {
+            logger.error("Unable to fetch data string.");
+
+            PageChangeDTO dto = new PageChangeDTO();
+            dto.setErrorOccurred(true);
+            dto.setErrorMessage("Unable to fetch data.");
+
+            return dto;
+        }
+
+        model.setStartByteIndex(startByteIndex);
 
         PageChangeDTO pageChangeDTO = new PageChangeDTO();
         pageChangeDTO.setData(data);
@@ -174,9 +175,21 @@ public class ControllerImpl implements Controller {
     public synchronized PageChangeDTO showFirstPage(ProgObserver observer) {
         logger.debug("Fetching first page.");
 
-        model.setStartByteIndex(0);
+        String data;
+        try {
+            data = fetchData(model.getCurrentType(), observer, 0,
+                    model.getMaxBytesPerPage());
+        } catch (Exception e) {
+            logger.error("Unable to fetch data string.");
 
-        String data = displayData(model.getCurrentType(), observer);
+            PageChangeDTO dto = new PageChangeDTO();
+            dto.setErrorOccurred(true);
+            dto.setErrorMessage("Unable to fetch data.");
+
+            return dto;
+        }
+
+        model.setStartByteIndex(0);
 
         PageChangeDTO pageChangeDTO = new PageChangeDTO();
         pageChangeDTO.setData(data);

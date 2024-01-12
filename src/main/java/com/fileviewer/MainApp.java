@@ -46,10 +46,7 @@ public class MainApp {
         ProgressBarFactory progressBarFactory = new ProgressBarFactoryImpl();
         Model model = new ModelImpl();
 
-        Controller controller = new ControllerImpl(fileLoader, model, dataViewer,
-                progObserverFactory, progressBarFactory);
-
-        GUI gui = new GUI(controller, progObserverFactory);
-        controller.setGUI(gui);
+        Controller controller = new ControllerImpl(fileLoader, model, dataViewer);
+        GUI gui = new GUI(controller, progObserverFactory, progressBarFactory);
     }
 }

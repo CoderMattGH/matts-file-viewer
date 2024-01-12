@@ -3,6 +3,8 @@ package com.fileviewer.dto;
 public class PageChangeDTO {
     private String data;
     private int currentPage;
+    private boolean errorOccurred;
+    private String errorMessage;
 
     public void setData(String data) {
         this.data = data;
@@ -18,5 +20,21 @@ public class PageChangeDTO {
 
     public int getCurrentPage() {
         return currentPage;
+    }
+
+    public void setErrorOccurred(boolean errorOccurred) {
+        this.errorOccurred = errorOccurred;
+    }
+
+    public boolean isErrorOccurred() {
+        return errorOccurred;
+    }
+
+    public void setErrorMessage(String errorMessage) {
+        this.errorMessage = errorMessage;
+    }
+
+    public String getErrorMessage() {
+        return errorMessage;
     }
 }

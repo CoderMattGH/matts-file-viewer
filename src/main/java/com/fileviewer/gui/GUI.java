@@ -1,11 +1,10 @@
 package com.fileviewer.gui;
 
 import com.fileviewer.controller.Controller;
-import com.fileviewer.dto.LoadFileDTO;import com.fileviewer.dto.PageChangeDTO;
-import com.fileviewer.model.Model;
+import com.fileviewer.dto.ChangeViewDTO;import com.fileviewer.dto.LoadFileDTO;import com.fileviewer.dto.PageChangeDTO;
+import com.fileviewer.gui.progressbar.ProgressBar;import com.fileviewer.gui.progressbar.ProgressBarFactory;import com.fileviewer.model.Model;
 import com.fileviewer.observer.ProgObserver;
 import com.fileviewer.observer.ProgObserverFactory;
-import com.fileviewer.observer.ProgObserverImpl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -18,6 +17,7 @@ public class GUI extends JFrame {
 
     private final Controller controller;
     private final ProgObserverFactory progObserverFactory;
+    private final ProgressBarFactory progressBarFactory;
 
     private JTextArea textArea;
     private JScrollPane scrollableTextArea;
@@ -33,12 +33,14 @@ public class GUI extends JFrame {
         PREV_PAGE
     }
 
-    public GUI(Controller controller, ProgObserverFactory progObserverFactory) {
+    public GUI(Controller controller, ProgObserverFactory progObserverFactory,
+            ProgressBarFactory progressBarFactory) {
         logger.debug("Constructing GUI.");
 
         // Dependencies.
         this.controller = controller;
         this.progObserverFactory = progObserverFactory;
+        this.progressBarFactory = progressBarFactory;
 
         this.setTitle("File Viewer v0.1");
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -85,19 +87,7 @@ public class GUI extends JFrame {
         firstPageBtn.addActionListener(e -> displayPage(Page.FIRST_PAGE));
 
         JButton loadBtn = new JButton("LOAD FILE");
-        loadBtn.addActionListener(e -> {
-                new Thread(() -> {
-                        ProgObserver observer = progObserverFactory.getInstance();
-                        LoadFileDTO dto = controller.loadFile(new JFileChooser(), observer);
-
-                        if (dto != null) {
-                            resetTextOutput();
-                            appendTextOutput(dto.getData());
-                        }
-
-                        observer.setIsFinished(true);
-                    }).start();
-                });
+        loadBtn.addActionListener(e -> loadFile());
 
         btnContainer.add(loadBtn);
 
@@ -195,23 +185,60 @@ public class GUI extends JFrame {
     }
 
     private void changeViewType(DataType type) {
+        this.setEnabled(false);
+
         Thread thread = new Thread(() -> {
                 ProgObserver observer = progObserverFactory.getInstance();
-                String data = controller.changeViewType(type, observer);
+                showProgressBar(observer);
 
-                if (data != null) {
+                ChangeViewDTO dto = controller.changeViewType(type, observer);
+
+                if (!dto.isErrorOccurred()) {
                     resetTextOutput();
-                    appendTextOutput(data);
+                    appendTextOutput(dto.getData());
+                    setPageLabel(dto.getCurrentPage());
+                } else {
+                    displayError(dto.getErrorMessage());
                 }
 
                 observer.setIsFinished(true);
+                this.setEnabled(true);
             });
         thread.start();
     }
 
+    private void loadFile() {
+        this.setEnabled(false);
+        new Thread(() -> {
+            ProgObserver observer = progObserverFactory.getInstance();
+
+            JFileChooser fileChooser = new JFileChooser();
+            int returnVal = fileChooser.showOpenDialog(this);
+
+            showProgressBar(observer);
+
+            if (returnVal == JFileChooser.APPROVE_OPTION) {
+                LoadFileDTO dto = controller.loadFile(observer,
+                        fileChooser.getSelectedFile());
+
+                if (!dto.isErrorOccurred()) {
+                    resetTextOutput();
+                    appendTextOutput(dto.getData());
+                } else {
+                    displayError(dto.getErrorMessage());
+                }
+            }
+
+            observer.setIsFinished(true);
+            this.setEnabled(true);
+        }).start();
+    }
+
     private void displayPage(Enum<Page> page) {
+        this.setEnabled(false);
         Thread thread = new Thread(() -> {
             ProgObserver observer = progObserverFactory.getInstance();
+            showProgressBar(observer);
 
             PageChangeDTO dto;
             if (page == Page.FIRST_PAGE)
@@ -223,13 +250,34 @@ public class GUI extends JFrame {
             else
                 dto = controller.showFirstPage(observer);
 
-            if (dto.getData() != null) {
+            if (!dto.isErrorOccurred()) {
                 resetTextOutput();
                 appendTextOutput(dto.getData());
                 setPageLabel(dto.getCurrentPage());
+            } else {
+                displayError(dto.getErrorMessage());
             }
 
             observer.setIsFinished(true);
+            this.setEnabled(true);
+        });
+        thread.start();
+    }
+
+    private void showProgressBar(ProgObserver observer) {
+        Thread thread = new Thread(() -> {
+                ProgressBar progressBar = progressBarFactory.getInstance(this, observer);
+
+                while(!observer.isFinished()) {
+                    progressBar.setPercentage(observer.getPercentage());
+
+                    try {
+                        Thread.sleep(20);
+                    } catch (Exception ignored) {}
+                }
+
+                logger.debug("Trying to destroy ProgressBar...");
+                progressBar.destroyProgressBar();
         });
         thread.start();
     }
