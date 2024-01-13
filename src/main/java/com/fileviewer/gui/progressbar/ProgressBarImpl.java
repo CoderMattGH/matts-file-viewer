@@ -44,6 +44,7 @@ public class ProgressBarImpl extends JDialog implements ProgressBar {
             });
         this.add(cancelBtn, BorderLayout.SOUTH);
 
+        this.pack();
         this.setVisible(true);
     }
 
