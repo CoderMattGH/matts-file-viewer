@@ -18,6 +18,11 @@ import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 
+/**
+ * The main application class.
+ *
+ * Creates any required objects and their dependencies and starts the application proper.
+ */
 public class MainApp {
     private static final Logger logger = LogManager.getLogger(MainApp.class);
 

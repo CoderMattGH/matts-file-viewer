@@ -1,6 +1,5 @@
 package com.fileviewer.model;
 
-import com.fileviewer.dataprocessing.DataViewer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

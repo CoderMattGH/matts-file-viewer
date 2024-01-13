@@ -15,6 +15,9 @@ import javax.swing.*;
 import java.awt.*;
 import static com.fileviewer.dataprocessing.DataViewer.DataType;
 
+/**
+ * The main GUI component of the application.
+ */
 public class GUI extends JFrame {
     private static final Logger logger = LogManager.getLogger(GUI.class);
 
@@ -22,13 +25,13 @@ public class GUI extends JFrame {
     private final ProgObserverFactory progObserverFactory;
     private final ProgressBarFactory progressBarFactory;
 
-    private JTextArea textArea;
-    private JScrollPane scrollableTextArea;
+    private JTextArea textArea;                 // The main text area to display the data.
+    private JScrollPane scrollableTextArea;     // The JScrollPane object to wrap the text area.
     private final Container container;
 
-    private final JLabel pageInfoLabel;
-    private final JLabel fileSizeLabel;
-    private final JLabel fileNameLabel;
+    private final JLabel pageInfoLabel;         // Displays the current page.
+    private final JLabel fileSizeLabel;         // Displays the current file size.
+    private final JLabel fileNameLabel;         // Displays the current file name.
 
     private static enum Page {
         FIRST_PAGE,
@@ -36,6 +39,13 @@ public class GUI extends JFrame {
         PREV_PAGE
     }
 
+    /**
+     * Constructor for the main GUI component of the application.
+     * Constructing will automatically allow the GUI to become visible.
+     * @param controller The Controller class used to provide functionality.
+     * @param progObserverFactory A ProgObserverFactory object to create ProgObserver instances.
+     * @param progressBarFactory A ProgressBarFactory object to create ProgressBar instances.
+     */
     public GUI(Controller controller, ProgObserverFactory progObserverFactory,
             ProgressBarFactory progressBarFactory) {
         logger.debug("Constructing GUI.");
@@ -146,6 +156,9 @@ public class GUI extends JFrame {
         this.setVisible(true);
     }
 
+    /**
+     * Resets the main data view area.
+     */
     public void resetTextOutput() {
         container.remove(scrollableTextArea);
 
@@ -161,6 +174,10 @@ public class GUI extends JFrame {
         container.revalidate();
     }
 
+    /**
+     * Appends a string to the main data view area.
+     * @param text A String containing the text to append.
+     */
     public void appendTextOutput(final String text) {
         textArea.append(text);
     }
@@ -177,16 +194,28 @@ public class GUI extends JFrame {
         fileNameLabel.setText("Filename: " + fileName);
     }
 
+    /**
+     * Displays an error message that the user must acknowledge.
+     * @param errorMessage The error message to display.
+     */
     public void displayError(String errorMessage) {
         JOptionPane.showMessageDialog(this, errorMessage, "Error",
                 JOptionPane.ERROR_MESSAGE);
     }
 
+    /**
+     * Displays an information message that the user must acknowledge.
+     * @param message The message to display.
+     */
     public void displayMessage(String message) {
         JOptionPane.showMessageDialog(this, message, "Information",
                 JOptionPane.INFORMATION_MESSAGE);
     }
 
+    /**
+     * Changes the display of data in the main text area to that of a different DataType.
+     * @param type The DataType to display.
+     */
     private void changeViewType(DataType type) {
         this.setEnabled(false);
 
@@ -213,6 +242,10 @@ public class GUI extends JFrame {
         thread.start();
     }
 
+    /**
+     * Loads a file and displays the data in the main text area.  Opens a file dialog GUI
+     * for the user to select the file.
+     */
     private void loadFile() {
         this.setEnabled(false);
         new Thread(() -> {
@@ -247,6 +280,11 @@ public class GUI extends JFrame {
         }).start();
     }
 
+    /**
+     * Displays the specified page of the data in the specified main text area using the currently
+     * selected DataType.
+     * @param page A Page enum selection specifying the page to display.
+     */
     private void displayPage(Enum<Page> page) {
         this.setEnabled(false);
         Thread thread = new Thread(() -> {
@@ -280,6 +318,11 @@ public class GUI extends JFrame {
         thread.start();
     }
 
+    /**
+     * Displays the Progress Bar above the GUI and disables the main GUI.
+     * NOTE: This function is non-blocking and will return immediately.
+     * @param observer A ProgObserver object which is used to update the Progress Bar.
+     */
     private void showProgressBar(ProgObserver observer) {
         Thread thread = new Thread(() -> {
                 ProgressBar progressBar = progressBarFactory.getInstance(this, observer);
