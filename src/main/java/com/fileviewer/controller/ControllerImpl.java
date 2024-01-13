@@ -30,9 +30,6 @@ public class ControllerImpl implements Controller {
         this.dataViewer = dataViewer;
     }
 
-    /**
-     *
-     */
     public synchronized LoadFileDTO loadFile(ProgObserver observer, File file) {
         if (file == null || observer == null)
             throw new NullPointerException("Parameters cannot be null.");
