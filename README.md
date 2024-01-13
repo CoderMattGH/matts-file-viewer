@@ -8,6 +8,8 @@ The application allows viewing a file's data in an assortment of different types
 
 Download `MattsFileViewer.jar` from the release link below and place the file in any folder.
 
+https://github.com/CoderMattGH/MattsFileViewer/releases/download/v1.0/MattsFileViewer1.0.jar
+
 ## Execution
 
 NOTE: You will need to install Java Runtime Environment version 17 or above. 
