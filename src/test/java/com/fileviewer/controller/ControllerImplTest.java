@@ -22,6 +22,9 @@ import java.io.IOException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
 
+/**
+ * Unit test for ControllerImpl class.
+ */
 public class ControllerImplTest {
     private static final Logger logger = LogManager.getLogger(ControllerImplTest.class);
 

@@ -8,6 +8,9 @@ import org.mockito.Mockito;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+/**
+ * Unit test for DataViewerImpl class.
+ */
 public class DataViewerImplTest {
 
     private final static Logger logger = LogManager.getLogger(DataViewerImplTest.class);

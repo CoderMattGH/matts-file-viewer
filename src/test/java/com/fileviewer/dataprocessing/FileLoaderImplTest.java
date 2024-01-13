@@ -14,6 +14,9 @@ import java.io.IOException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+/**
+ * Unit test for FileLoaderImpl class.
+ */
 public class FileLoaderImplTest {
     private final static Logger logger = LogManager.getLogger(FileLoaderImplTest.class);
 

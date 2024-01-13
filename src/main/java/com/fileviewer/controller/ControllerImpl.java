@@ -30,6 +30,9 @@ public class ControllerImpl implements Controller {
         this.dataViewer = dataViewer;
     }
 
+    /**
+     *
+     */
     public synchronized LoadFileDTO loadFile(ProgObserver observer, File file) {
         if (file == null || observer == null)
             throw new NullPointerException("Parameters cannot be null.");
@@ -136,7 +139,7 @@ public class ControllerImpl implements Controller {
         if (model.getLastFileLoadedData() == null) {
             PageChangeDTO dto = new PageChangeDTO();
             dto.setErrorOccurred(true);
-            dto.setErrorMessage("No file was loaded.");
+            dto.setErrorMessage("No file has been loaded.");
 
             return dto;
         }
@@ -179,6 +182,14 @@ public class ControllerImpl implements Controller {
         if (observer == null)
             throw new NullPointerException("Parameters cannot be null");
 
+        if (model.getLastFileLoadedData() == null) {
+            PageChangeDTO dto = new PageChangeDTO();
+            dto.setErrorOccurred(true);
+            dto.setErrorMessage("No file has been loaded.");
+
+            return dto;
+        }
+
         int startByteIndex = model.getStartByteIndex() - model.getMaxBytesPerPage();
 
         if (startByteIndex < 0)
@@ -212,6 +223,16 @@ public class ControllerImpl implements Controller {
 
         if (observer == null)
             throw new NullPointerException("Parameters cannot be null.");
+
+        if (model.getLastFileLoadedData() == null) {
+            logger.error("No file has been loaded.");
+
+            PageChangeDTO dto = new PageChangeDTO();
+            dto.setErrorOccurred(true);
+            dto.setErrorMessage("No file has been loaded.");
+
+            return dto;
+        }
 
         String data;
         try {
