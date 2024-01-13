@@ -5,7 +5,7 @@ import com.fileviewer.dto.ChangeViewDTO;
 import com.fileviewer.dto.LoadFileDTO;
 import com.fileviewer.dto.PageChangeDTO;
 import com.fileviewer.gui.progressbar.ProgressBar;
-import com.fileviewer.gui.progressbar.ProgressBarFactory;import com.fileviewer.model.Model;
+import com.fileviewer.gui.progressbar.ProgressBarFactory;
 import com.fileviewer.observer.ProgObserver;
 import com.fileviewer.observer.ProgObserverFactory;
 import org.apache.logging.log4j.LogManager;
@@ -221,9 +221,9 @@ public class GUI extends JFrame {
             JFileChooser fileChooser = new JFileChooser();
             int returnVal = fileChooser.showOpenDialog(this);
 
-            showProgressBar(observer);
-
             if (returnVal == JFileChooser.APPROVE_OPTION) {
+                showProgressBar(observer);
+
                 LoadFileDTO dto = controller.loadFile(observer,
                         fileChooser.getSelectedFile());
 

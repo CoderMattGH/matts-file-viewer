@@ -5,7 +5,6 @@ import com.fileviewer.dataprocessing.FileLoader;
 import com.fileviewer.dto.ChangeViewDTO;
 import com.fileviewer.dto.LoadFileDTO;
 import com.fileviewer.dto.PageChangeDTO;
-import com.fileviewer.exception.FetchDataException;
 import com.fileviewer.model.Model;
 import com.fileviewer.model.ModelImpl;
 import com.fileviewer.observer.ProgObserver;
@@ -180,7 +179,6 @@ public class ControllerImplTest {
         model.setLastFileLoadedData(testData);
         model.setCurrentType(DataViewer.DataType.Characters);
         model.setStartByteIndex(0);
-        model.setLastFileLoadedData(testData);
 
         String testString = "TEST STRING";
         Mockito.when(dataViewer.fetchDisplayData(any(), any(), any(), anyInt(), anyInt()))
@@ -190,6 +188,97 @@ public class ControllerImplTest {
         PageChangeDTO dto = controller.showNextPage(observer);
 
         assertEquals(false, dto.isErrorOccurred());
+        assertEquals(2, dto.getCurrentPage());
+    }
+
+    @Test
+    public void testShowPrevPage_InvalidSmallFile() throws IOException {
+        File testFile = getTestFile1();
+        int[] testData = getTestFileData(testFile);
+
+        Model model = new ModelImpl();
+        model.setLastFileLoadedData(testData);
+        model.setCurrentType(DataViewer.DataType.Hex);
+        model.setStartByteIndex(0);
+
+        String testString = "TEST STRING";
+        Mockito.when(dataViewer.fetchDisplayData(any(), any(), any(), anyInt(), anyInt()))
+                .thenReturn(testString);
+
+        Controller controller = new ControllerImpl(fileLoader, model, dataViewer);
+        PageChangeDTO dto = controller.showPrevPage(observer);
+
+        assertEquals(1, model.getCurrentPage());
+    }
+
+    @Test
+    public void testShowPrevPage_ValidLargeFile() throws IOException {
+        File largeTestFile = getTestFile2();
+        int[] testData = getTestFileData(largeTestFile);
+
+        Model model = new ModelImpl();
+        model.setLastFileLoadedData(testData);
+        model.setCurrentType(DataViewer.DataType.Characters);
+        // Start on second page.
+        model.setStartByteIndex(model.getMaxBytesPerPage() + 1);
+
+        String testString = "TEST STRING";
+        Mockito.when(dataViewer.fetchDisplayData(any(), any(), any(), anyInt(), anyInt()))
+                .thenReturn(testString);
+
+        Controller controller = new ControllerImpl(fileLoader, model, dataViewer);
+
         assertEquals(2, model.getCurrentPage());
+
+        PageChangeDTO dto = controller.showPrevPage(observer);
+
+        assertEquals(1, dto.getCurrentPage());
+    }
+
+    @Test
+    public void testShowFirstPage_InvalidSmallFile() throws IOException {
+        File testFile = getTestFile1();
+        int[] testData = getTestFileData(testFile);
+
+        Model model = new ModelImpl();
+        model.setLastFileLoadedData(testData);
+        model.setCurrentType(DataViewer.DataType.UTF16Bytes);
+        model.setStartByteIndex(0);
+
+        String testString = "TEST STRING";
+        Mockito.when(dataViewer.fetchDisplayData(any(), any(), any(), anyInt(), anyInt()))
+                .thenReturn(testString);
+
+        Controller controller = new ControllerImpl(fileLoader, model, dataViewer);
+
+        assertEquals(1, model.getCurrentPage());
+
+        PageChangeDTO dto = controller.showPrevPage(observer);
+
+        assertEquals(1, dto.getCurrentPage());
+    }
+
+    @Test
+    public void testShowFirstPage_ValidLargeFile() throws IOException {
+        File testFile = getTestFile2();
+        int[] testData = getTestFileData(testFile);
+
+        Model model = new ModelImpl();
+        model.setLastFileLoadedData(testData);
+        model.setCurrentType(DataViewer.DataType.Bytes);
+        // Start on page 2.
+        model.setStartByteIndex(model.getMaxBytesPerPage() + 1);
+
+        String testString = "TEST STRING";
+        Mockito.when(dataViewer.fetchDisplayData(any(), any(), any(), anyInt(), anyInt()))
+                .thenReturn(testString);
+
+        assertEquals(2, model.getCurrentPage());
+
+        Controller controller = new ControllerImpl(fileLoader, model, dataViewer);
+        PageChangeDTO dto = controller.showFirstPage(observer);
+
+        assertEquals(false, dto.isErrorOccurred());
+        assertEquals(1, dto.getCurrentPage());
     }
 }
