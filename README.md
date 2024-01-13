@@ -1,4 +1,4 @@
-# Matt's File Viewer
+# Matt's File Viewer v1.0
 
 Matt's File Viewer is an educational application for displaying file data information.  
 
