@@ -18,10 +18,10 @@ NOTE: You will need to install Java Runtime Environment version 17 or above.
 
 Simply double-clicking the *.jar should execute the program if you have JRE 17 or above installed.  
 
-If this does not work then you can run the program via. the command line by typing `java -jar MattsFileViewer1.0.jar` in the directory containing the file.
+If this does not work then you can run the program via. the command line by typing `java -jar MattsFileViewer.jar` in the directory containing the file.
 
 ### Running on Linux
 
-You will first need to set the executable bit on the file by running the command `chmod +x MattsFileViewer1.0.jar`.  You should then be able to double click to execute the file.
+You will first need to set the executable bit on the file by running the command `chmod +x MattsFileViewer.jar`.  You should then be able to double click to execute the file.
 
-If this does not work then you can run the program via. the terminal by typing `java -jar MattsFileViewer1.0.jar` in the directory containing the file.
+If this does not work then you can run the program via. the terminal by typing `java -jar MattsFileViewer.jar` in the directory containing the file.
