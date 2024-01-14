@@ -18,9 +18,6 @@ public class DataViewerImpl implements DataViewer {
         logger.debug("Constructing DataViewerImpl.");
     }
 
-    /**
-     * Returns null if an error occurred or if there was no data to display.
-     */
     public String fetchDisplayData(int[] data, ProgObserver observer, Enum<DataType> type,
             int startByteIndex, int endByteIndex) {
         if (data == null) {
@@ -100,7 +97,15 @@ public class DataViewerImpl implements DataViewer {
         return str.toString();
     }
 
-    // Here endIndex is inclusive.
+    /**
+     * Returns a byte array containing the bytes from the int array supplied.  It casts the int
+     * values into bytes and places them in the new array.
+     *
+     * @param data The int array of byte values.
+     * @param observer The ProgObserver object to measure progress.
+     * @param startIndex The index to start at from the supplied int array.  Inclusive.
+     * @param endIndex The index to end at from the supplied int array.  Inclusive.
+     */
     private byte[] getByteArray(int[] data, ProgObserver observer, int startIndex,
             int endIndex) {
         if (endIndex > data.length)
