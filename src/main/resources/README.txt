@@ -12,13 +12,13 @@ Download `MattsFileViewer.jar` from the release link below and place the file in
 
 NOTE: You will need to install Java Runtime Environment version 17 or above. 
 
-# Running on Windows
+### Running on Windows
 
 Simply double-clicking the *.jar should execute the program if you have JRE 17 or above installed.  
 
 If this does not work then you can run the program via. the command line by typing `java -jar MattsFileViewer1.0.jar` in the directory containing the file.
 
-# Running on Linux
+### Running on Linux
 
 You will first need to set the executable bit on the file by running the command `chmod +x MattsFileViewer1.0.jar`.  You should then be able to double click to execute the file.
 

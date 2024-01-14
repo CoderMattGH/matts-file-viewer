@@ -55,7 +55,7 @@ public class GUI extends JFrame {
         this.progObserverFactory = progObserverFactory;
         this.progressBarFactory = progressBarFactory;
 
-        this.setTitle("File Viewer v1.0");
+        this.setTitle("Matt's File Viewer v1.0");
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
 
         this.setSize(1000, 800);
